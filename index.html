@@ -1,0 +1,900 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+  <title>Bhishi Group Manager</title>
+  
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
+  <style>
+    :root {
+      --primary: #4338ca;
+      --primary-light: #eef2ff;
+      --success: #059669;
+      --success-light: #ecfdf5;
+      --danger: #dc2626;
+      --danger-light: #fef2f2;
+      --warning: #d97706;
+      --warning-light: #fffbeb;
+      --bg: #f8fafc;
+      --card-bg: #ffffff;
+      --text: #0f172a;
+      --text-muted: #64748b;
+      --border: #e2e8f0;
+      --radius: 16px;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+    
+    body {
+      font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+      background-color: var(--bg);
+      color: var(--text);
+      padding-bottom: calc(75px + env(safe-area-inset-bottom, 16px));
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    header {
+      width: 100%;
+      background: var(--card-bg);
+      border-bottom: 1px solid var(--border);
+      padding: 12px 20px;
+      position: sticky;
+      top: 0;
+      z-index: 40;
+    }
+    .header-inner {
+      max-width: 800px;
+      margin: 0 auto;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .brand { font-size: 18px; font-weight: 800; color: var(--primary); display: flex; align-items: center; gap: 8px; }
+
+    .cloud-status {
+      font-size: 11px;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 3px 8px;
+      border-radius: 20px;
+      background: #f1f5f9;
+      color: var(--text-muted);
+      font-weight: 600;
+      margin-top: 2px;
+    }
+    .status-dot { width: 7px; height: 7px; border-radius: 50%; background: #94a3b8; }
+    .status-dot.synced { background: #10b981; }
+    .status-dot.syncing { background: #f59e0b; animation: pulse 1s infinite; }
+    @keyframes pulse { 0% { opacity: 0.3; } 50% { opacity: 1; } 100% { opacity: 0.3; } }
+
+    main {
+      width: 100%;
+      max-width: 800px;
+      padding: 16px;
+      margin: 0 auto;
+    }
+
+    .summary-card {
+      background: linear-gradient(135deg, #3730a3 0%, #4f46e5 100%);
+      color: white;
+      border-radius: var(--radius);
+      padding: 20px;
+      margin-bottom: 20px;
+      box-shadow: 0 10px 15px -3px rgba(79, 70, 229, 0.2);
+    }
+    .stats-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 14px; }
+    .stat-pill { background: rgba(255,255,255,0.15); padding: 8px 10px; border-radius: 12px; text-align: center; }
+    .stat-pill .label { font-size: 10px; opacity: 0.85; text-transform: uppercase; font-weight: 600; }
+    .stat-pill .val { font-size: 15px; font-weight: 700; margin-top: 2px; }
+
+    .progress-wrap { margin-top: 14px; background: rgba(0,0,0,0.2); border-radius: 10px; height: 7px; overflow: hidden; }
+    .progress-bar { height: 100%; background: #34d399; transition: width 0.4s ease; }
+
+    .grid { display: grid; grid-template-columns: 1fr; gap: 12px; }
+    @media (min-width: 600px) { .grid { grid-template-columns: 1fr 1fr; } }
+
+    .member-card {
+      background: var(--card-bg);
+      border: 1.5px solid var(--border);
+      border-radius: var(--radius);
+      padding: 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+    }
+    .member-card.paid { border-color: var(--success); background-color: #fbfdfc; }
+    .member-card.claimed { border-color: #cbd5e1; background-color: #f8fafc; opacity: 0.8; }
+    .member-card.winner-now { border-color: var(--warning); background-color: #fffdf5; box-shadow: 0 0 0 2px var(--warning); }
+
+    .member-header { display: flex; align-items: center; justify-content: space-between; }
+    .avatar-meta { display: flex; align-items: center; gap: 10px; }
+    .avatar { width: 38px; height: 38px; border-radius: 50%; background: var(--primary-light); display: flex; align-items: center; justify-content: center; font-size: 18px; }
+    .name-title { font-weight: 700; font-size: 15px; }
+    .meta-sub { font-size: 11px; color: var(--text-muted); }
+
+    .badge { font-size: 10px; font-weight: 700; padding: 3px 8px; border-radius: 6px; }
+    .badge-paid { background: var(--success-light); color: var(--success); }
+    .badge-due { background: var(--danger-light); color: var(--danger); }
+    .badge-claimed { background: #e2e8f0; color: #475569; }
+    .badge-pot { background: var(--warning-light); color: var(--warning); border: 1px solid #fde68a; }
+
+    .member-actions {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-top: 1px solid var(--border);
+      padding-top: 10px;
+    }
+
+    .btn {
+      appearance: none;
+      border: none;
+      border-radius: 8px;
+      font-weight: 600;
+      font-size: 12px;
+      padding: 7px 12px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      font-family: inherit;
+    }
+    .btn:active { transform: scale(0.97); }
+    .btn-primary { background: var(--primary); color: white; }
+    .btn-success { background: var(--success); color: white; }
+    .btn-outline { background: transparent; border: 1px solid var(--border); color: var(--text); }
+
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+
+    .tab-bar {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: var(--card-bg);
+      border-top: 1px solid var(--border);
+      display: flex;
+      justify-content: space-around;
+      padding: 8px 0 calc(8px + env(safe-area-inset-bottom, 16px));
+      z-index: 50;
+    }
+    .tab-btn {
+      background: none;
+      border: none;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 3px;
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--text-muted);
+      cursor: pointer;
+      padding: 4px 10px;
+    }
+    .tab-btn.active { color: var(--primary); }
+    .tab-btn svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width: 2; }
+
+    .register-table-wrapper {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      overflow-x: auto;
+    }
+    table { width: 100%; border-collapse: collapse; font-size: 12.5px; text-align: center; }
+    th, td { padding: 10px 8px; border-bottom: 1px solid var(--border); white-space: nowrap; }
+    th { background: #f8fafc; font-weight: 700; color: var(--text-muted); font-size: 11px; }
+    td:first-child, th:first-child { text-align: left; position: sticky; left: 0; background: var(--card-bg); z-index: 10; border-right: 1px solid var(--border); }
+    th:first-child { background: #f8fafc; }
+
+    .wheel-container {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 24px 16px;
+      text-align: center;
+    }
+    .wheel-wrapper { position: relative; width: 280px; height: 280px; margin: 0 auto 16px; }
+    .wheel-pointer {
+      position: absolute;
+      top: -10px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 0;
+      height: 0;
+      border-left: 12px solid transparent;
+      border-right: 12px solid transparent;
+      border-top: 24px solid #e11d48;
+      z-index: 20;
+    }
+    canvas { border-radius: 50%; box-shadow: 0 4px 12px rgba(0,0,0,0.1); max-width: 100%; height: auto; }
+
+    .chat-container {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      display: flex;
+      flex-direction: column;
+      height: 480px;
+      overflow: hidden;
+    }
+    .chat-messages { flex: 1; padding: 14px; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; background: #f8fafc; }
+    .chat-bubble { max-width: 82%; padding: 8px 12px; border-radius: 12px; font-size: 13px; }
+    .chat-bubble.mine { align-self: flex-end; background: var(--primary); color: white; border-bottom-right-radius: 2px; }
+    .chat-bubble.theirs { align-self: flex-start; background: white; border: 1px solid var(--border); color: var(--text); border-bottom-left-radius: 2px; }
+    .chat-author { font-size: 10px; font-weight: 700; margin-bottom: 2px; opacity: 0.8; }
+    .chat-time { font-size: 9.5px; opacity: 0.7; margin-top: 3px; text-align: right; }
+    
+    .chat-input-bar { padding: 10px; background: var(--card-bg); border-top: 1px solid var(--border); display: flex; gap: 8px; }
+    .chat-input-bar input { flex: 1; padding: 9px 12px; border: 1.5px solid var(--border); border-radius: 18px; font-size: 13.5px; outline: none; font-family: inherit; }
+    .quick-chips { display: flex; gap: 6px; overflow-x: auto; padding: 8px 10px; background: #f1f5f9; border-top: 1px solid var(--border); }
+    .chip { font-size: 11px; padding: 4px 10px; background: white; border: 1px solid var(--border); border-radius: 20px; white-space: nowrap; cursor: pointer; }
+
+    .modal-overlay {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0,0,0,0.5);
+      backdrop-filter: blur(4px);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+      z-index: 100;
+    }
+    .modal-content { background: white; border-radius: var(--radius); max-width: 400px; width: 100%; padding: 20px; }
+    .form-group { margin-bottom: 12px; }
+    .form-group label { display: block; font-size: 11.5px; font-weight: 700; margin-bottom: 5px; color: var(--text-muted); }
+    .form-group input, .form-group select { width: 100%; padding: 9px 12px; border: 1.5px solid var(--border); border-radius: 8px; font-size: 13.5px; font-family: inherit; }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="header-inner">
+      <div>
+        <div class="brand">💰 Bhishi Group</div>
+        <div class="cloud-status">
+          <span class="status-dot" id="cloudDot"></span>
+          <span id="cloudText">Connecting...</span>
+        </div>
+      </div>
+      <div>
+        <button class="btn btn-outline" onclick="openProfileModal()">👤 My Profile</button>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <!-- TAB 1: BOARD / DASHBOARD -->
+    <div id="tab-board" class="tab-content active">
+      <div class="summary-card">
+        <div style="display:flex; justify-content:space-between; align-items:flex-start;">
+          <div>
+            <span style="font-size:11px; font-weight:700; background:rgba(255,255,255,0.2); padding:3px 7px; border-radius:6px;">
+              MONTH <span id="currentMonthDisplay">1</span> OF <span id="totalMonthsDisplay">10</span>
+            </span>
+            <div style="font-size: 24px; font-weight: 800; margin-top: 4px;" id="totalPotDisplay">₹35,000</div>
+            <div style="font-size: 11.5px; opacity: 0.9;">Monthly Collective Pot</div>
+          </div>
+          <div style="text-align:right;">
+            <div style="font-size: 13px; font-weight: 700;" id="recipientDisplay">Pending Lucky Draw 🎯</div>
+            <div style="font-size: 11px; opacity: 0.8;">Month Recipient</div>
+          </div>
+        </div>
+
+        <div class="progress-wrap">
+          <div class="progress-bar" id="progressBar" style="width: 0%;"></div>
+        </div>
+        <div style="display:flex; justify-content:space-between; font-size:11px; margin-top:6px; opacity:0.9;">
+          <span id="paidCountDisplay">0/10 Paid</span>
+          <span id="collectedAmountDisplay">₹0 collected</span>
+        </div>
+
+        <div class="stats-row">
+          <div class="stat-pill">
+            <div class="label">Installment</div>
+            <div class="val" id="installmentDisplay">₹3,500</div>
+          </div>
+          <div class="stat-pill">
+            <div class="label">Remaining</div>
+            <div class="val" id="remainingCountDisplay">10 Due</div>
+          </div>
+          <div class="stat-pill">
+            <div class="label">Eligible</div>
+            <div class="val" id="eligibleCountDisplay">10</div>
+          </div>
+        </div>
+      </div>
+
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+        <h3 style="margin:0; font-size:15px;">Group Members</h3>
+        <span style="font-size:11.5px; color:var(--text-muted);">Tap button to mark paid</span>
+      </div>
+
+      <div class="grid" id="membersGrid"></div>
+    </div>
+
+    <!-- TAB 2: REGISTER -->
+    <div id="tab-register" class="tab-content">
+      <div style="margin-bottom:12px;">
+        <h3 style="margin:0 0 3px; font-size:16px;">10-Month Master Register</h3>
+        <div style="font-size:12px; color:var(--text-muted);">Audit table tracking all payment rounds.</div>
+      </div>
+      <div class="register-table-wrapper">
+        <table id="registerTable"></table>
+      </div>
+    </div>
+
+    <!-- TAB 3: WHEEL -->
+    <div id="tab-wheel" class="tab-content">
+      <div class="wheel-container">
+        <h3 style="margin:0 0 4px; font-size:17px;">🎯 Month <span id="wheelMonthNum">1</span> Lucky Draw</h3>
+        <div style="font-size:12px; color:var(--text-muted); margin-bottom: 14px;">
+          Only members who have <b>not taken the pot yet</b> appear on the wheel.
+        </div>
+
+        <div class="wheel-wrapper">
+          <div class="wheel-pointer"></div>
+          <canvas id="wheelCanvas" width="280" height="280"></canvas>
+        </div>
+
+        <button class="btn btn-primary" id="spinWheelBtn" onclick="spinWheel()" style="padding:11px 24px; font-size:14px; width: 100%; max-width:260px;">
+          🎰 Spin the Lucky Wheel
+        </button>
+
+        <div id="winnerBox" style="margin-top:16px; display:none;">
+          <div style="padding:12px; background:#fffbeb; border:1.5px dashed #f59e0b; border-radius:12px;">
+            <div style="font-size:11px; color:#b45309; font-weight:700;">WINNER OF THIS MONTH'S POT</div>
+            <div style="font-size:20px; font-weight:800; color:#b45309; margin:4px 0;" id="winnerText"></div>
+            <div style="font-size:11px; color:var(--text-muted);">They are marked as claimed and excluded from future spins!</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB 4: CHAT -->
+    <div id="tab-chat" class="tab-content">
+      <div class="chat-container">
+        <div class="chat-messages" id="chatList"></div>
+        <div class="quick-chips">
+          <div class="chip" onclick="sendQuickChat('✅ Paid ₹3,500 via UPI!')">✅ Paid ₹3,500</div>
+          <div class="chip" onclick="sendQuickChat('📸 Payment screenshot shared!')">📸 Shared Screenshot</div>
+          <div class="chip" onclick="sendQuickChat('🎯 When is this month\'s lucky draw?')">🎯 When is draw?</div>
+        </div>
+        <div class="chat-input-bar">
+          <input type="text" id="chatInput" placeholder="Type a message or UPI reference..." onkeydown="if(event.key==='Enter') sendChatMessage()">
+          <button class="btn btn-primary" onclick="sendChatMessage()">Send</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB 5: ADMIN -->
+    <div id="tab-admin" class="tab-content">
+      <div class="member-card">
+        <h3 style="margin:0 0 6px;">🔐 Organizer Controls</h3>
+        <p style="font-size:12px; color:var(--text-muted); margin:0 0 12px;">
+          Default PIN is <b>7788</b>.
+        </p>
+
+        <div id="adminLockedBox">
+          <div class="form-group">
+            <label>ENTER 4-DIGIT ADMIN PIN</label>
+            <input type="password" id="adminPinInput" placeholder="7788" maxlength="6">
+          </div>
+          <button class="btn btn-primary" onclick="verifyAdminPin()">Unlock Controls</button>
+        </div>
+
+        <div id="adminUnlockedBox" style="display:none; flex-direction:column; gap:12px;">
+          <div style="background:var(--success-light); color:var(--success); padding:8px 12px; border-radius:8px; font-weight:700; font-size:12px;">
+            ✓ Admin Mode Active
+          </div>
+
+          <button class="btn btn-outline" style="border-color:#6366f1; color:#6366f1;" onclick="advanceNextMonth()">
+            ➡️ Advance to Next Month Round
+          </button>
+          <button class="btn btn-outline" style="border-color:var(--danger); color:var(--danger);" onclick="resetEntireCycle()">
+            ⚠️ Reset All Data Back to Start
+          </button>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- NAVIGATION -->
+  <nav class="tab-bar">
+    <button class="tab-btn active" onclick="switchTab('board')">
+      <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
+      Board
+    </button>
+    <button class="tab-btn" onclick="switchTab('register')">
+      <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line></svg>
+      Register
+    </button>
+    <button class="tab-btn" onclick="switchTab('wheel')">
+      <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><polygon points="12 6 12 12 16 14"></polygon></svg>
+      Wheel
+    </button>
+    <button class="tab-btn" onclick="switchTab('chat')">
+      <svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+      Chat
+    </button>
+    <button class="tab-btn" onclick="switchTab('admin')">
+      <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+      Admin
+    </button>
+  </nav>
+
+  <!-- MODAL: PROFILE -->
+  <div class="modal-overlay" id="profileModal">
+    <div class="modal-content">
+      <h3 style="margin:0 0 4px;">My Profile</h3>
+      <p style="font-size:12px; color:var(--text-muted); margin-bottom:14px;">Select your name to update your info.</p>
+
+      <div class="form-group">
+        <label>I AM</label>
+        <select id="profileSelect" onchange="loadProfileIntoForm()"></select>
+      </div>
+
+      <div class="form-group">
+        <label>NAME</label>
+        <input type="text" id="profileNameInput">
+      </div>
+
+      <div class="form-group">
+        <label>WHATSAPP (OPTIONAL)</label>
+        <input type="tel" id="profilePhoneInput" placeholder="98XXXXXXXX">
+      </div>
+
+      <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:16px;">
+        <button class="btn btn-outline" onclick="closeProfileModal()">Cancel</button>
+        <button class="btn btn-primary" onclick="saveProfileChanges()">Save</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const CLOUD_SYNC_URL = "https://script.google.com/macros/s/AKfycbz5TvmjWr_oY_YZdyf2_COIx57vMYIhaAMb-n_3gq1Dtp1fiLNoi0xbCf68QZdhz7hQ/exec";
+    const STORAGE_KEY = 'bhishi_master_v5';
+    const DEFAULT_PIN = "7788";
+
+    const INITIAL_MEMBERS = [
+      { id: "m1",  name: "Onkar",    phone: "", avatar: "👤", paidCurrentMonth: false, history: {}, hasTaken: false, takenMonth: null },
+      { id: "m2",  name: "Onkar 2",  phone: "", avatar: "👤", paidCurrentMonth: false, history: {}, hasTaken: false, takenMonth: null },
+      { id: "m3",  name: "Shubham",  phone: "", avatar: "👤", paidCurrentMonth: false, history: {}, hasTaken: false, takenMonth: null },
+      { id: "m4",  name: "Mangesh",  phone: "", avatar: "👤", paidCurrentMonth: false, history: {}, hasTaken: false, takenMonth: null },
+      { id: "m5",  name: "Akash",    phone: "", avatar: "👤", paidCurrentMonth: false, history: {}, hasTaken: false, takenMonth: null },
+      { id: "m6",  name: "R.K.",     phone: "", avatar: "👤", paidCurrentMonth: false, history: {}, hasTaken: false, takenMonth: null },
+      { id: "m7",  name: "Abhishek", phone: "", avatar: "👤", paidCurrentMonth: false, history: {}, hasTaken: false, takenMonth: null },
+      { id: "m8",  name: "Vishal",   phone: "", avatar: "👤", paidCurrentMonth: false, history: {}, hasTaken: false, takenMonth: null },
+      { id: "m9",  name: "Chinmay",  phone: "", avatar: "👤", paidCurrentMonth: false, history: {}, hasTaken: false, takenMonth: null },
+      { id: "m10", name: "Avinash",  phone: "", avatar: "👤", paidCurrentMonth: false, history: {}, hasTaken: false, takenMonth: null }
+    ];
+
+    let state = {
+      monthlyAmount: 3500,
+      totalMonths: 10,
+      currentMonth: 1,
+      adminPin: DEFAULT_PIN,
+      members: JSON.parse(JSON.stringify(INITIAL_MEMBERS)),
+      chat: [],
+      potWinners: {},
+      lastUpdated: Date.now()
+    };
+
+    let activeUserId = localStorage.getItem('bhishi_active_user') || 'm1';
+    let isPushing = false;
+
+    try {
+      const saved = localStorage.getItem(STORAGE_KEY);
+      if (saved) state = Object.assign(state, JSON.parse(saved));
+    } catch(e) {}
+
+    function updateCloudStatus(status, text) {
+      const dot = document.getElementById('cloudDot');
+      const label = document.getElementById('cloudText');
+      if (!dot || !label) return;
+      dot.className = 'status-dot ' + status;
+      label.innerText = text;
+    }
+
+    async function pullCloudData() {
+      if (isPushing) return;
+      try {
+        const response = await fetch(CLOUD_SYNC_URL + '?t=' + Date.now(), { method: 'GET', redirect: 'follow' });
+        const text = await response.text();
+        if (text && text.trim().startsWith('{')) {
+          const remoteState = JSON.parse(text);
+          if (remoteState && remoteState.members && remoteState.members.length) {
+            if (!state.lastUpdated || remoteState.lastUpdated > state.lastUpdated) {
+              state = remoteState;
+              localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+              renderAll();
+            }
+          }
+          updateCloudStatus('synced', 'Live Cloud Synced');
+        } else {
+          pushCloudData();
+        }
+      } catch (err) {
+        updateCloudStatus('synced', 'Local / Cached');
+      }
+    }
+
+    async function pushCloudData() {
+      state.lastUpdated = Date.now();
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+      renderAll();
+
+      isPushing = true;
+      updateCloudStatus('syncing', 'Saving changes...');
+      try {
+        await fetch(CLOUD_SYNC_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+          body: JSON.stringify(state)
+        });
+        updateCloudStatus('synced', 'Live Cloud Synced');
+      } catch (err) {
+        updateCloudStatus('synced', 'Saved locally');
+      } finally {
+        setTimeout(() => { isPushing = false; }, 1200);
+      }
+    }
+
+    setInterval(pullCloudData, 4000);
+
+    function renderAll() {
+      renderSummary();
+      renderMemberCards();
+      renderRegisterTable();
+      drawWheel();
+      renderChat();
+    }
+
+    function renderSummary() {
+      const members = state.members;
+      const paidMembers = members.filter(m => m.paidCurrentMonth);
+      const eligibleMembers = members.filter(m => !m.hasTaken);
+      const totalPool = state.monthlyAmount * members.length;
+      const collectedAmount = paidMembers.length * state.monthlyAmount;
+      const progressPercent = members.length ? (paidMembers.length / members.length) * 100 : 0;
+
+      document.getElementById('currentMonthDisplay').innerText = state.currentMonth;
+      document.getElementById('totalMonthsDisplay').innerText = state.totalMonths;
+      document.getElementById('wheelMonthNum').innerText = state.currentMonth;
+      document.getElementById('totalPotDisplay').innerText = `₹${totalPool.toLocaleString('en-IN')}`;
+      document.getElementById('installmentDisplay').innerText = `₹${state.monthlyAmount.toLocaleString('en-IN')}`;
+      document.getElementById('paidCountDisplay').innerText = `${paidMembers.length}/${members.length} Paid`;
+      document.getElementById('collectedAmountDisplay').innerText = `₹${collectedAmount.toLocaleString('en-IN')} collected`;
+      document.getElementById('remainingCountDisplay').innerText = `${members.length - paidMembers.length} Due`;
+      document.getElementById('eligibleCountDisplay').innerText = eligibleMembers.length;
+      document.getElementById('progressBar').style.width = `${progressPercent}%`;
+
+      const currentWinnerName = state.potWinners[state.currentMonth];
+      document.getElementById('recipientDisplay').innerText = currentWinnerName ? `👑 ${currentWinnerName}` : 'Pending Lucky Draw 🎯';
+    }
+
+    function renderMemberCards() {
+      const container = document.getElementById('membersGrid');
+      container.innerHTML = '';
+
+      state.members.forEach(m => {
+        const isCurrentWinner = state.potWinners[state.currentMonth] === m.name;
+        let cardClass = 'member-card';
+        if (isCurrentWinner) cardClass += ' winner-now';
+        else if (m.hasTaken) cardClass += ' claimed';
+        else if (m.paidCurrentMonth) cardClass += ' paid';
+
+        let badgeHtml = '';
+        if (isCurrentWinner) badgeHtml = `<span class="badge badge-pot">👑 Winner M${state.currentMonth}</span>`;
+        else if (m.hasTaken) badgeHtml = `<span class="badge badge-claimed">Claimed (M${m.takenMonth})</span>`;
+        else badgeHtml = `<span class="badge ${m.paidCurrentMonth ? 'badge-paid' : 'badge-due'}">${m.paidCurrentMonth ? '✓ Paid' : '✕ Due'}</span>`;
+
+        const card = document.createElement('div');
+        card.className = cardClass;
+        card.innerHTML = `
+          <div class="member-header">
+            <div class="avatar-meta">
+              <div class="avatar">${m.avatar || '👤'}</div>
+              <div>
+                <div class="name-title">${m.name}</div>
+                <div class="meta-sub">${m.phone ? m.phone : 'No phone added'}</div>
+              </div>
+            </div>
+            ${badgeHtml}
+          </div>
+
+          <div class="member-actions">
+            <span style="font-size:14px; font-weight:700; color:${m.paidCurrentMonth ? 'var(--success)' : 'var(--text)'};">
+              ₹${state.monthlyAmount.toLocaleString('en-IN')}
+            </span>
+            <button class="btn ${m.paidCurrentMonth ? 'btn-outline' : 'btn-success'}" onclick="togglePaidStatus('${m.id}')">
+              ${m.paidCurrentMonth ? 'Undo' : 'Mark as Paid'}
+            </button>
+          </div>
+        `;
+        container.appendChild(card);
+      });
+    }
+
+    function togglePaidStatus(id) {
+      const member = state.members.find(m => m.id === id);
+      if (!member) return;
+      member.paidCurrentMonth = !member.paidCurrentMonth;
+      if (!member.history) member.history = {};
+      member.history[`m${state.currentMonth}`] = member.paidCurrentMonth;
+      pushCloudData();
+    }
+
+    function renderRegisterTable() {
+      const table = document.getElementById('registerTable');
+      let html = `<thead><tr><th>Member</th>`;
+      for (let i = 1; i <= state.totalMonths; i++) html += `<th>M${i}</th>`;
+      html += `<th>Status</th></tr></thead><tbody>`;
+
+      state.members.forEach(m => {
+        html += `<tr><td><b>${m.name}</b></td>`;
+        for (let i = 1; i <= state.totalMonths; i++) {
+          const isWinner = state.potWinners[i] === m.name;
+          const isPaid = (i === state.currentMonth) ? m.paidCurrentMonth : (m.history && m.history[`m${i}`]);
+          
+          if (isWinner) html += `<td style="background:#fef3c7; color:#b45309; font-weight:700;">👑</td>`;
+          else if (isPaid) html += `<td style="color:var(--success); font-weight:800;">✓</td>`;
+          else html += `<td style="color:#cbd5e1;">•</td>`;
+        }
+        html += `<td>${m.hasTaken ? `<span style="font-size:11px; color:var(--text-muted);">M${m.takenMonth}</span>` : '<span style="font-size:11px; color:var(--success);">Eligible</span>'}</td></tr>`;
+      });
+      html += `</tbody>`;
+      table.innerHTML = html;
+    }
+
+    const canvas = document.getElementById('wheelCanvas');
+    const ctx = canvas.getContext('2d');
+    let startAngle = 0;
+    let isSpinning = false;
+    const colors = ['#f43f5e', '#8b5cf6', '#06b6d4', '#10b981', '#f59e0b', '#3b82f6', '#ec4899', '#14b8a6', '#6366f1', '#eab308'];
+
+    function drawWheel() {
+      const eligible = state.members.filter(m => !m.hasTaken);
+      const numSegments = eligible.length;
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      if (numSegments === 0) {
+        ctx.fillStyle = '#64748b';
+        ctx.font = 'bold 13px Plus Jakarta Sans';
+        ctx.textAlign = 'center';
+        ctx.fillText('All pots claimed!', 140, 140);
+        return;
+      }
+
+      const arc = (2 * Math.PI) / numSegments;
+      for (let i = 0; i < numSegments; i++) {
+        const angle = startAngle + i * arc;
+        ctx.fillStyle = colors[i % colors.length];
+        ctx.beginPath();
+        ctx.moveTo(140, 140);
+        ctx.arc(140, 140, 135, angle, angle + arc);
+        ctx.fill();
+
+        ctx.save();
+        ctx.translate(140, 140);
+        ctx.rotate(angle + arc / 2);
+        ctx.textAlign = 'right';
+        ctx.fillStyle = 'white';
+        ctx.font = 'bold 12px Plus Jakarta Sans';
+        ctx.fillText(eligible[i].name, 120, 4);
+        ctx.restore();
+      }
+    }
+
+    function spinWheel() {
+      if (isSpinning) return;
+      const eligible = state.members.filter(m => !m.hasTaken);
+      if (!eligible.length) return alert("All members have taken their pots!");
+
+      isSpinning = true;
+      document.getElementById('spinWheelBtn').disabled = true;
+      document.getElementById('winnerBox').style.display = 'none';
+
+      const spinDuration = 4000;
+      const startTime = performance.now();
+      const totalRotation = (Math.PI * 2 * 6) + Math.random() * (Math.PI * 2);
+      const initialAngle = startAngle;
+
+      function animate(time) {
+        const elapsed = time - startTime;
+        const progress = Math.min(elapsed / spinDuration, 1);
+        const easeOut = 1 - Math.pow(1 - progress, 3);
+
+        startAngle = initialAngle + totalRotation * easeOut;
+        drawWheel();
+
+        if (progress < 1) requestAnimationFrame(animate);
+        else {
+          isSpinning = false;
+          document.getElementById('spinWheelBtn').disabled = false;
+          finalizeWinner(eligible);
+        }
+      }
+      requestAnimationFrame(animate);
+    }
+
+    function finalizeWinner(eligible) {
+      const arc = (2 * Math.PI) / eligible.length;
+      let normalizedAngle = (1.5 * Math.PI - (startAngle % (2 * Math.PI))) % (2 * Math.PI);
+      if (normalizedAngle < 0) normalizedAngle += 2 * Math.PI;
+
+      const winningIndex = Math.floor(normalizedAngle / arc) % eligible.length;
+      const winner = eligible[winningIndex];
+
+      winner.hasTaken = true;
+      winner.takenMonth = state.currentMonth;
+      state.potWinners[state.currentMonth] = winner.name;
+
+      document.getElementById('winnerText').innerText = winner.name;
+      document.getElementById('winnerBox').style.display = 'block';
+
+      if (typeof confetti === 'function') confetti({ particleCount: 70, spread: 60 });
+
+      state.chat.push({
+        id: Date.now(),
+        author: 'System 🤖',
+        text: `🎉 Lucky Draw: ${winner.name} won Month ${state.currentMonth} pot!`,
+        time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+        userId: 'system'
+      });
+
+      pushCloudData();
+    }
+
+    function renderChat() {
+      const list = document.getElementById('chatList');
+      list.innerHTML = '';
+
+      if (!state.chat || !state.chat.length) {
+        list.innerHTML = `<div style="text-align:center; padding:30px 10px; color:var(--text-muted); font-size:12px;">No messages yet. Send payment updates below!</div>`;
+        return;
+      }
+
+      state.chat.forEach(msg => {
+        const isMine = msg.userId === activeUserId;
+        const div = document.createElement('div');
+        div.className = `chat-bubble ${isMine ? 'mine' : 'theirs'}`;
+        div.innerHTML = `
+          <div class="chat-author">${msg.author}</div>
+          <div>${msg.text}</div>
+          <div class="chat-time">${msg.time}</div>
+        `;
+        list.appendChild(div);
+      });
+      list.scrollTop = list.scrollHeight;
+    }
+
+    function sendChatMessage() {
+      const input = document.getElementById('chatInput');
+      const text = input.value.trim();
+      if (!text) return;
+
+      const myUser = state.members.find(m => m.id === activeUserId) || { name: 'Member' };
+      state.chat.push({
+        id: Date.now(),
+        author: myUser.name,
+        text: text,
+        time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+        userId: activeUserId
+      });
+
+      input.value = '';
+      pushCloudData();
+    }
+
+    function sendQuickChat(phrase) {
+      document.getElementById('chatInput').value = phrase;
+      sendChatMessage();
+    }
+
+    function openProfileModal() {
+      const select = document.getElementById('profileSelect');
+      select.innerHTML = '';
+      state.members.forEach(m => {
+        const opt = document.createElement('option');
+        opt.value = m.id;
+        opt.innerText = m.name;
+        if (m.id === activeUserId) opt.selected = true;
+        select.appendChild(opt);
+      });
+      loadProfileIntoForm();
+      document.getElementById('profileModal').style.display = 'flex';
+    }
+
+    function loadProfileIntoForm() {
+      const id = document.getElementById('profileSelect').value;
+      const m = state.members.find(x => x.id === id);
+      if (m) {
+        document.getElementById('profileNameInput').value = m.name;
+        document.getElementById('profilePhoneInput').value = m.phone || '';
+      }
+    }
+
+    function closeProfileModal() {
+      document.getElementById('profileModal').style.display = 'none';
+    }
+
+    function saveProfileChanges() {
+      const id = document.getElementById('profileSelect').value;
+      const newName = document.getElementById('profileNameInput').value.trim();
+      const newPhone = document.getElementById('profilePhoneInput').value.trim();
+
+      const member = state.members.find(m => m.id === id);
+      if (member && newName) {
+        member.name = newName;
+        member.phone = newPhone;
+        activeUserId = id;
+        localStorage.setItem('bhishi_active_user', activeUserId);
+        closeProfileModal();
+        pushCloudData();
+      }
+    }
+
+    function verifyAdminPin() {
+      const pin = document.getElementById('adminPinInput').value;
+      if (pin === (state.adminPin || DEFAULT_PIN)) {
+        document.getElementById('adminLockedBox').style.display = 'none';
+        document.getElementById('adminUnlockedBox').style.display = 'flex';
+      } else {
+        alert('Incorrect PIN. Default PIN is 7788.');
+      }
+    }
+
+    function advanceNextMonth() {
+      if (state.currentMonth >= state.totalMonths) return alert('All 10 months complete!');
+      if (!confirm(`Advance to Month ${state.currentMonth + 1}?`)) return;
+
+      state.members.forEach(m => {
+        if (!m.history) m.history = {};
+        m.history[`m${state.currentMonth}`] = m.paidCurrentMonth;
+        m.paidCurrentMonth = false;
+      });
+
+      state.currentMonth += 1;
+      pushCloudData();
+    }
+
+    function resetEntireCycle() {
+      if (!confirm("Reset all data back to Month 1?")) return;
+      state.currentMonth = 1;
+      state.potWinners = {};
+      state.members = JSON.parse(JSON.stringify(INITIAL_MEMBERS));
+      pushCloudData();
+    }
+
+    function switchTab(tabId) {
+      document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+      document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+
+      const target = document.getElementById('tab-' + tabId);
+      if (target) target.classList.add('active');
+
+      const tabs = ['board', 'register', 'wheel', 'chat', 'admin'];
+      const idx = tabs.indexOf(tabId);
+      if (idx !== -1) document.querySelectorAll('.tab-btn')[idx].classList.add('active');
+
+      if (tabId === 'wheel') drawWheel();
+    }
+
+    renderAll();
+    pullCloudData();
+  </script>
+</body>
+</html>

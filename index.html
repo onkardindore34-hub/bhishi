@@ -1,1384 +1,525 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-  <title>Bhishi Manager - 10-Month Register & Lucky Draw</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+  <title>Bhishi Group Manager</title>
   
-  <!-- Tailwind CSS CDN -->
-  <script src="https://cdn.tailwindcss.com"></script>
-  <!-- Canvas Confetti CDN -->
-  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
-  <!-- Google Fonts: Inter -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-
-  <script>
-    tailwind.config = {
-      theme: {
-        extend: {
-          fontFamily: {
-            sans: ['"Plus Jakarta Sans"', 'Inter', '-apple-system', 'sans-serif'],
-          },
-          colors: {
-            brand: {
-              50: '#eef2ff',
-              100: '#e0e7ff',
-              500: '#6366f1',
-              600: '#4f46e5',
-              700: '#4338ca',
-            }
-          }
-        }
-      }
-    }
-  </script>
+  
+  <!-- Canvas Confetti -->
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
 
   <style>
-    body {
-      font-family: 'Plus Jakarta Sans', sans-serif;
-      -webkit-tap-highlight-color: transparent;
-      padding-bottom: env(safe-area-inset-bottom, 20px);
+    :root {
+      --primary: #4f46e5;
+      --primary-light: #eef2ff;
+      --success: #10b981;
+      --success-light: #ecfdf5;
+      --danger: #ef4444;
+      --danger-light: #fef2f2;
+      --warning: #f59e0b;
+      --warning-light: #fffbeb;
+      --gray-50: #f8fafc;
+      --gray-100: #f1f5f9;
+      --gray-200: #e2e8f0;
+      --gray-500: #64748b;
+      --gray-700: #334155;
+      --gray-900: #0f172a;
+      --safe-bottom: env(safe-area-inset-bottom, 16px);
     }
-    .safe-top {
-      padding-top: env(safe-area-inset-top, 10px);
+
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Plus Jakarta Sans', sans-serif; -webkit-tap-highlight-color: transparent; }
+    body { background-color: var(--gray-50); color: var(--gray-900); padding-bottom: calc(75px + var(--safe-bottom)); min-height: 100vh; }
+    
+    header {
+      background: white; border-bottom: 1px solid var(--gray-200); position: sticky; top: 0; z-index: 40;
+      padding: 12px 16px; display: flex; justify-content: space-between; align-items: center;
     }
-    .safe-bottom {
-      padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 76px);
+    .brand { display: flex; align-items: center; gap: 8px; font-weight: 800; font-size: 1.15rem; color: var(--primary); }
+    .status-badge { font-size: 0.72rem; padding: 4px 8px; border-radius: 999px; font-weight: 600; display: inline-flex; align-items: center; gap: 4px; }
+    .status-syncing { background: var(--warning-light); color: var(--warning); }
+    .status-online { background: var(--success-light); color: var(--success); }
+
+    .container { max-width: 720px; margin: 0 auto; padding: 16px; }
+
+    /* Top Stats Card */
+    .metric-card {
+      background: linear-gradient(135deg, #4f46e5 0%, #3730a3 100%);
+      color: white; border-radius: 16px; padding: 18px; margin-bottom: 16px; box-shadow: 0 8px 20px -6px rgba(79, 70, 229, 0.3);
     }
-    .custom-scroll::-webkit-scrollbar {
-      width: 4px;
-      height: 4px;
+    .metric-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 14px; text-align: center; }
+    .metric-sub { background: rgba(255,255,255,0.15); backdrop-filter: blur(8px); padding: 8px; border-radius: 10px; }
+    .metric-sub span { display: block; font-size: 0.7rem; opacity: 0.85; text-transform: uppercase; font-weight: 600; }
+    .metric-sub strong { font-size: 1.05rem; }
+
+    /* Members Grid */
+    .section-title { font-size: 1rem; font-weight: 700; color: var(--gray-700); margin: 16px 0 10px 0; display: flex; justify-content: space-between; align-items: center; }
+    .member-grid { display: grid; grid-template-columns: 1fr; gap: 10px; }
+    @media (min-width: 500px) { .member-grid { grid-template-columns: 1fr 1fr; } }
+    
+    .member-card {
+      background: white; border: 1.5px solid var(--gray-200); border-radius: 14px; padding: 12px;
+      display: flex; flex-direction: column; justify-content: space-between; gap: 10px; transition: transform 0.1s;
     }
-    .custom-scroll::-webkit-scrollbar-thumb {
-      background-color: #cbd5e1;
-      border-radius: 9999px;
+    .member-card.paid { border-color: var(--success); background-color: #fafffc; }
+    .member-card.has-taken { background-color: var(--gray-100); opacity: 0.85; border-color: var(--gray-200); }
+    .member-card.current-winner { border-color: var(--warning); background-color: #fffdf5; box-shadow: 0 0 0 2px var(--warning); }
+    
+    .member-top { display: flex; align-items: center; justify-content: space-between; }
+    .member-info { display: flex; align-items: center; gap: 10px; }
+    .avatar { width: 38px; height: 38px; border-radius: 50%; background: var(--gray-100); display: flex; align-items: center; justify-content: center; font-size: 1.2rem; }
+    .name-block strong { display: block; font-size: 0.95rem; font-weight: 700; color: var(--gray-900); }
+    .name-block small { color: var(--gray-500); font-size: 0.75rem; }
+
+    .tag { font-size: 0.68rem; font-weight: 700; padding: 2px 8px; border-radius: 6px; }
+    .tag-taken { background: #e2e8f0; color: #475569; }
+    .tag-winner { background: var(--warning-light); color: var(--warning); }
+    .tag-eligible { background: var(--primary-light); color: var(--primary); }
+
+    .member-actions { display: flex; gap: 6px; align-items: center; }
+    .btn-toggle-paid {
+      flex: 1; padding: 8px 10px; border-radius: 8px; border: none; font-size: 0.82rem; font-weight: 700;
+      cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px;
     }
-    .ledger-grid {
-      display: grid;
-      grid-template-columns: minmax(130px, 1.4fr) repeat(10, minmax(54px, 1fr)) minmax(80px, 0.9fr);
+    .btn-paid { background: var(--success-light); color: var(--success); border: 1px solid var(--success); }
+    .btn-unpaid { background: var(--danger-light); color: var(--danger); border: 1px solid var(--danger); }
+    .btn-wa { background: #e0f2fe; color: #0284c7; padding: 8px 10px; border-radius: 8px; border: none; font-size: 0.82rem; font-weight: 700; text-decoration: none; display: flex; align-items: center; justify-content: center; }
+
+    /* Navigation Bar */
+    nav.bottom-nav {
+      position: fixed; bottom: 0; left: 0; right: 0; background: white; border-top: 1px solid var(--gray-200);
+      display: flex; justify-content: space-around; padding: 8px 0 calc(8px + var(--safe-bottom)) 0; z-index: 50;
     }
+    .nav-item {
+      display: flex; flex-direction: column; align-items: center; gap: 3px; font-size: 0.7rem; font-weight: 600;
+      color: var(--gray-500); background: none; border: none; cursor: pointer; flex: 1;
+    }
+    .nav-item.active { color: var(--primary); font-weight: 700; }
+    .nav-item svg { width: 22px; height: 22px; }
+
+    /* Views */
+    .view-panel { display: none; }
+    .view-panel.active { display: block; }
+
+    /* Wheel Section */
+    .wheel-container { display: flex; flex-direction: column; align-items: center; background: white; padding: 20px; border-radius: 16px; border: 1px solid var(--gray-200); }
+    #wheelCanvas { max-width: 320px; width: 100%; height: auto; margin-bottom: 16px; border-radius: 50%; }
+    .btn-spin {
+      background: var(--primary); color: white; border: none; font-size: 1rem; font-weight: 800;
+      padding: 12px 32px; border-radius: 999px; cursor: pointer; box-shadow: 0 4px 14px rgba(79, 70, 229, 0.4);
+      width: 100%; max-width: 280px;
+    }
+    .btn-spin:disabled { opacity: 0.5; cursor: not-allowed; }
+
+    /* Register Table */
+    .table-card { background: white; border-radius: 16px; border: 1px solid var(--gray-200); overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; font-size: 0.8rem; text-align: center; }
+    th, td { padding: 10px 8px; border-bottom: 1px solid var(--gray-100); white-space: nowrap; }
+    th { background: var(--gray-50); font-weight: 700; color: var(--gray-700); }
+    td.member-cell { text-align: left; font-weight: 700; position: sticky; left: 0; background: white; }
+
+    /* Chat Section */
+    .chat-container { background: white; border-radius: 16px; border: 1px solid var(--gray-200); height: calc(100vh - 240px); display: flex; flex-direction: column; }
+    .chat-messages { flex: 1; overflow-y: auto; padding: 14px; display: flex; flex-direction: column; gap: 10px; }
+    .chat-bubble { max-width: 80%; padding: 8px 12px; border-radius: 12px; font-size: 0.85rem; line-height: 1.3; }
+    .chat-bubble.mine { align-self: flex-end; background: var(--primary); color: white; border-bottom-right-radius: 2px; }
+    .chat-bubble.theirs { align-self: flex-start; background: var(--gray-100); color: var(--gray-900); border-bottom-left-radius: 2px; }
+    .chat-meta { font-size: 0.65rem; opacity: 0.75; margin-bottom: 3px; font-weight: 600; }
+    .chat-input-row { padding: 10px; border-top: 1px solid var(--gray-200); display: flex; gap: 8px; }
+    .chat-input-row input { flex: 1; padding: 10px; border-radius: 8px; border: 1px solid var(--gray-200); font-size: 0.9rem; }
+    .chat-input-row button { background: var(--primary); color: white; border: none; padding: 0 16px; border-radius: 8px; font-weight: 700; }
+
+    .quick-chips { display: flex; gap: 6px; overflow-x: auto; padding: 8px 10px 0 10px; }
+    .chip { font-size: 0.72rem; background: var(--primary-light); color: var(--primary); border: none; padding: 4px 10px; border-radius: 999px; white-space: nowrap; font-weight: 600; cursor: pointer; }
   </style>
 </head>
-<body class="bg-slate-50 text-slate-800 antialiased min-h-screen flex flex-col select-none">
+<body>
 
-  <header class="bg-indigo-700 text-white shadow-md sticky top-0 z-40 safe-top">
-    <div class="max-w-4xl mx-auto px-4 py-3 flex items-center justify-between">
-      <div class="flex items-center space-x-2.5">
-        <div class="w-10 h-10 rounded-2xl bg-white/15 backdrop-blur-md flex items-center justify-center font-black text-xl border border-white/20 shadow-inner">
-          ₹
-        </div>
-        <div>
-          <div class="flex items-center gap-1.5 flex-wrap">
-            <h1 class="text-base sm:text-lg font-extrabold tracking-tight leading-tight" id="headerBhishiName">
-              Friends 10-Month Bhishi
-            </h1>
-            <span class="text-[10px] bg-amber-400 text-amber-950 font-black px-2 py-0.5 rounded-full uppercase tracking-wider" id="headerMonthBadge">
-              Month 1 / 10
-            </span>
-          </div>
-          <p class="text-[11px] text-indigo-100 flex items-center gap-1.5 mt-0.5">
-            <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-            <span id="roleIndicatorText">You: Guest</span>
-          </p>
-        </div>
-      </div>
-
-      <div class="flex items-center gap-2">
-        <button id="userSelectorBtn" class="bg-white/10 hover:bg-white/20 active:scale-95 text-xs font-semibold px-2.5 py-1.5 rounded-xl border border-white/20 flex items-center gap-1.5 transition">
-          <span id="myAvatarIcon">👤</span>
-          <span class="hidden sm:inline" id="myProfileLabel">My Profile</span>
-        </button>
-        <button id="adminToggleBtn" class="bg-amber-400 hover:bg-amber-300 text-slate-900 active:scale-95 text-xs font-bold px-2.5 py-1.5 rounded-xl shadow flex items-center gap-1 transition">
-          <span id="adminLockIcon">🔒</span>
-          <span id="adminBtnLabel">Admin</span>
-        </button>
-      </div>
+  <header>
+    <div class="brand">
+      <span>💰</span>
+      <span>Bhishi Manager</span>
+    </div>
+    <div id="syncIndicator" class="status-badge status-online">
+      <span>●</span> <span>Synced</span>
     </div>
   </header>
 
-  <main class="max-w-4xl mx-auto px-3.5 py-4 w-full flex-1 safe-bottom">
+  <div class="container">
 
-    <!-- KPI Summary Cards -->
-    <div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5 mb-3">
-      <div class="bg-white p-3.5 rounded-2xl shadow-sm border border-slate-200/80 flex flex-col justify-between">
-        <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Per Head</span>
-        <div class="mt-1 flex items-baseline gap-1">
-          <span class="text-lg md:text-xl font-extrabold text-slate-800" id="statPerHead">₹3,500</span>
-        </div>
-        <span class="text-[10px] text-indigo-600 font-semibold" id="statMembersCount">10 Members</span>
-      </div>
-
-      <div class="bg-white p-3.5 rounded-2xl shadow-sm border border-slate-200/80 flex flex-col justify-between">
-        <span class="text-[10px] font-bold text-indigo-500 uppercase tracking-wider">Total Pool</span>
-        <div class="mt-1 flex items-baseline gap-1">
-          <span class="text-lg md:text-xl font-extrabold text-indigo-600" id="statMonthlyPool">₹35,000</span>
-        </div>
-        <span class="text-[10px] text-slate-500">1 Recipient / Mo</span>
-      </div>
-
-      <div class="bg-white p-3.5 rounded-2xl shadow-sm border border-slate-200/80 flex flex-col justify-between">
-        <span class="text-[10px] font-bold text-emerald-600 uppercase tracking-wider">Collected</span>
-        <div class="mt-1 flex items-baseline gap-1">
-          <span class="text-lg md:text-xl font-extrabold text-emerald-600" id="statCollectedAmount">₹0</span>
-        </div>
-        <span class="text-[10px] text-emerald-700 font-bold" id="statPaidRatio">0 / 10 Paid</span>
-      </div>
-
-      <div class="bg-white p-3.5 rounded-2xl shadow-sm border border-slate-200/80 flex flex-col justify-between">
-        <span class="text-[10px] font-bold text-rose-500 uppercase tracking-wider">Remaining</span>
-        <div class="mt-1 flex items-baseline gap-1">
-          <span class="text-lg md:text-xl font-extrabold text-rose-600" id="statPendingAmount">₹35,000</span>
-        </div>
-        <span class="text-[10px] text-rose-600 font-bold" id="statPendingRatio">10 Due</span>
-      </div>
-    </div>
-
-    <!-- Progress Meter -->
-    <div class="bg-white p-3 rounded-2xl shadow-sm border border-slate-200/80 mb-3.5">
-      <div class="flex items-center justify-between text-xs font-bold mb-1.5">
-        <span class="text-slate-600">Collection Progress</span>
-        <span class="text-indigo-600 font-extrabold" id="progressPercentage">0%</span>
-      </div>
-      <div class="w-full bg-slate-100 rounded-full h-3 overflow-hidden p-0.5">
-        <div id="progressBarFill" class="bg-gradient-to-r from-indigo-500 to-emerald-500 h-2 rounded-full transition-all duration-500" style="width: 0%"></div>
-      </div>
-    </div>
-
-    <!-- Active Pot Winner Announcement -->
-    <div id="potWinnerBanner" class="hidden mb-3.5 bg-gradient-to-r from-amber-100 via-amber-50 to-orange-100 border-2 border-amber-300 p-3.5 rounded-2xl shadow-sm">
-      <div class="flex items-center justify-between gap-2">
-        <div class="flex items-center gap-3">
-          <div class="w-11 h-11 rounded-2xl bg-amber-500 text-white flex items-center justify-center text-2xl shadow-sm">
-            👑
-          </div>
+    <!-- 1. DASHBOARD TAB -->
+    <section id="tab-dashboard" class="view-panel active">
+      <div class="metric-card">
+        <div style="display:flex; justify-content:space-between; align-items:center;">
           <div>
-            <div class="text-[10px] font-black uppercase text-amber-900 tracking-wider">Current Month Pot Recipient</div>
-            <div class="text-base md:text-lg font-black text-amber-950" id="winnerReceiverName">Rahul</div>
-            <div class="text-[11px] text-amber-800 font-semibold" id="winnerReceiverSubtext">Lump sum: ₹35,000</div>
+            <span style="font-size:0.75rem; text-transform:uppercase; font-weight:700; opacity:0.8;">Current Round</span>
+            <h2 id="roundTitle" style="font-size:1.5rem; font-weight:800;">Month 1 of 10</h2>
           </div>
-        </div>
-        <button id="adminClearWinnerBtn" class="hidden text-xs bg-white/90 hover:bg-white text-amber-900 font-bold px-3 py-1.5 rounded-xl border border-amber-300 shadow-sm active:scale-95 transition">
-          Clear
-        </button>
-      </div>
-    </div>
-
-    <div id="viewDashboard" class="view-content space-y-3">
-      <!-- Filter Tabs -->
-      <div class="flex items-center justify-between gap-1 overflow-x-auto bg-slate-200/70 p-1 rounded-2xl text-xs font-bold text-slate-600">
-        <button data-filter="all" class="filter-tab-btn flex-1 py-1.5 px-2 rounded-xl bg-white text-indigo-700 shadow-xs transition">
-          All (<span id="countAll">10</span>)
-        </button>
-        <button data-filter="paid" class="filter-tab-btn flex-1 py-1.5 px-2 rounded-xl hover:bg-white/50 text-emerald-700 transition">
-          Paid (<span id="countPaid">0</span>)
-        </button>
-        <button data-filter="pending" class="filter-tab-btn flex-1 py-1.5 px-2 rounded-xl hover:bg-white/50 text-rose-700 transition">
-          Due (<span id="countPending">10</span>)
-        </button>
-        <button data-filter="claimed" class="filter-tab-btn flex-1 py-1.5 px-2 rounded-xl hover:bg-white/50 text-amber-800 transition">
-          Pot Done (<span id="countClaimed">0</span>)
-        </button>
-      </div>
-
-      <!-- Member List -->
-      <div id="membersCardContainer" class="grid grid-cols-1 md:grid-cols-2 gap-2.5">
-        <!-- Rendered by JS -->
-      </div>
-    </div>
-
-    <div id="viewRegister" class="view-content hidden space-y-3">
-      <div class="bg-white p-3.5 rounded-2xl border border-slate-200 shadow-sm">
-        <div class="flex items-center justify-between mb-2.5">
-          <div>
-            <h3 class="font-bold text-slate-800 text-sm">10-Month Master Ledger Register</h3>
-            <p class="text-[11px] text-slate-500">Full audit log of monthly payments & claimed pots</p>
-          </div>
-          <span class="text-[10px] bg-slate-100 text-slate-600 px-2 py-1 rounded-lg font-bold">Scroll ➔</span>
-        </div>
-
-        <div class="overflow-x-auto custom-scroll border border-slate-100 rounded-xl">
-          <div class="ledger-grid bg-slate-50 text-[10px] font-bold text-slate-500 uppercase border-b border-slate-200 py-2.5 px-2 text-center min-w-[760px]">
-            <div class="text-left pl-2">Member</div>
-            <div>M1</div>
-            <div>M2</div>
-            <div>M3</div>
-            <div>M4</div>
-            <div>M5</div>
-            <div>M6</div>
-            <div>M7</div>
-            <div>M8</div>
-            <div>M9</div>
-            <div>M10</div>
-            <div>Pot Taken</div>
-          </div>
-          <div id="ledgerMatrixRows" class="min-w-[760px] divide-y divide-slate-100">
-            <!-- Dynamic rows -->
+          <div style="text-align:right;">
+            <span style="font-size:0.75rem; text-transform:uppercase; font-weight:700; opacity:0.8;">Monthly Pot</span>
+            <h2 id="potTotal" style="font-size:1.5rem; font-weight:800; color:#fde047;">₹35,000</h2>
           </div>
         </div>
 
-        <div class="mt-3 flex flex-wrap items-center gap-3 text-[11px] text-slate-500 px-1 font-medium">
-          <span class="flex items-center gap-1"><span class="w-3.5 h-3.5 bg-emerald-500 rounded text-white text-[9px] flex items-center justify-center font-bold">✓</span> Paid</span>
-          <span class="flex items-center gap-1"><span class="w-3.5 h-3.5 bg-rose-100 text-rose-600 rounded text-[9px] flex items-center justify-center font-bold">•</span> Due</span>
-          <span class="flex items-center gap-1"><span class="w-3.5 h-3.5 bg-amber-400 rounded text-amber-950 text-[9px] flex items-center justify-center font-bold">👑</span> Pot Recipient</span>
-        </div>
-      </div>
-    </div>
-
-    <div id="viewWheel" class="view-content hidden">
-      <div class="bg-white rounded-3xl p-4 sm:p-6 shadow-sm border border-slate-200 text-center max-w-lg mx-auto">
-        <h2 class="text-lg font-extrabold text-slate-800">Bhishi Lucky Draw Wheel</h2>
-        <p class="text-xs text-slate-500 mt-0.5">
-          Only friends who have <strong class="text-indigo-600">NOT</strong> yet taken the pot appear on this wheel.
-        </p>
-
-        <div class="relative inline-block my-4">
-          <!-- Pointer -->
-          <div class="absolute -top-3.5 left-1/2 transform -translate-x-1/2 z-20 pointer-events-none drop-shadow-md">
-            <div class="w-0 h-0 border-l-[14px] border-l-transparent border-r-[14px] border-r-transparent border-t-[26px] border-t-rose-600"></div>
+        <div class="metric-grid">
+          <div class="metric-sub">
+            <span>Per Member</span>
+            <strong id="perHeadAmount">₹3,500</strong>
           </div>
-          <canvas id="wheelCanvas" width="310" height="310" class="rounded-full shadow-lg border-4 border-white bg-slate-50"></canvas>
-        </div>
-
-        <div class="flex flex-col items-center gap-2.5">
-          <div id="wheelStatusMessage" class="text-xs font-bold text-slate-700 min-h-[20px]">
-            Ready to spin for Month <span id="wheelCurrentMonthLabel">1</span>
+          <div class="metric-sub">
+            <span>Collected</span>
+            <strong id="collectedAmount">₹0</strong>
           </div>
-
-          <button id="spinWheelBtn" class="w-full max-w-xs bg-indigo-600 hover:bg-indigo-700 active:scale-95 text-white font-extrabold py-3.5 px-6 rounded-2xl shadow-md transition text-sm flex items-center justify-center gap-2">
-            <span>Spin Lucky Wheel!</span>
-          </button>
-
-          <p class="text-[11px] text-slate-400 max-w-xs truncate">
-            Eligible: <span id="wheelEligibleText" class="font-bold text-slate-600">10 Members</span>
-          </p>
-        </div>
-      </div>
-    </div>
-
-    <div id="viewChat" class="view-content hidden">
-      <div class="bg-white rounded-2xl border border-slate-200 shadow-sm flex flex-col h-[530px] overflow-hidden max-w-2xl mx-auto">
-        <div class="bg-slate-50 border-b border-slate-200 px-3.5 py-2.5 flex items-center justify-between">
-          <div class="flex items-center gap-2">
-            <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
-            <div>
-              <h3 class="font-bold text-slate-800 text-xs">Group Chat & UPI Proofs</h3>
-              <p class="text-[10px] text-slate-500">Post payments, notes, and verify draws</p>
-            </div>
-          </div>
-          <button id="clearChatHistoryBtn" class="text-[10px] bg-white hover:bg-rose-50 text-slate-600 hover:text-rose-600 font-semibold px-2.5 py-1 rounded-lg border border-slate-200 shadow-2xs transition">
-            Clear Chat
-          </button>
-        </div>
-
-        <!-- Quick Chips -->
-        <div class="px-3 py-1.5 bg-slate-100/70 border-b border-slate-200 flex items-center gap-1.5 overflow-x-auto custom-scroll text-[10px]">
-          <span class="text-slate-400 font-bold whitespace-nowrap">Quick:</span>
-          <button type="button" class="quick-chip-btn bg-white hover:bg-emerald-50 text-emerald-700 font-bold px-2 py-1 rounded-md border border-emerald-200 whitespace-nowrap active:scale-95 transition">
-            ✅ Paid ₹3,500 via UPI
-          </button>
-          <button type="button" class="quick-chip-btn bg-white hover:bg-indigo-50 text-indigo-700 font-semibold px-2 py-1 rounded-md border border-indigo-200 whitespace-nowrap active:scale-95 transition">
-            📸 Sent screenshot on WhatsApp
-          </button>
-          <button type="button" class="quick-chip-btn bg-white hover:bg-amber-50 text-amber-800 font-semibold px-2 py-1 rounded-md border border-amber-200 whitespace-nowrap active:scale-95 transition">
-            🎉 Lucky draw time!
-          </button>
-        </div>
-
-        <div id="chatMessageList" class="flex-1 p-3 overflow-y-auto space-y-2.5 custom-scroll bg-slate-50/50">
-          <!-- Dynamically populated or clean state -->
-        </div>
-
-        <form id="chatForm" class="p-2.5 bg-white border-t border-slate-200 flex items-center gap-1.5">
-          <input type="text" id="chatSenderInput" placeholder="Name" required class="w-24 sm:w-28 text-xs px-2.5 py-2 rounded-xl border border-slate-200 focus:outline-none focus:ring-1 focus:ring-indigo-500">
-          <input type="text" id="chatTextInput" placeholder="Type message or paste UTR reference..." required class="flex-1 text-xs px-3 py-2 rounded-xl border border-slate-200 focus:outline-none focus:ring-1 focus:ring-indigo-500">
-          <button type="submit" class="bg-indigo-600 hover:bg-indigo-700 active:scale-95 text-white font-bold text-xs px-3.5 py-2 rounded-xl shadow-sm transition">
-            Send
-          </button>
-        </form>
-      </div>
-    </div>
-
-    <div id="viewSettings" class="view-content hidden space-y-4">
-      <div class="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-sm max-w-xl mx-auto">
-        <div class="flex items-center justify-between pb-3 border-b border-slate-100">
-          <div>
-            <h3 class="font-bold text-slate-800 text-sm">Organizer Admin Settings</h3>
-            <p class="text-[11px] text-slate-500">Manage amounts, months, and member list</p>
-          </div>
-          <span id="adminLockBadge" class="text-[10px] bg-rose-100 text-rose-700 px-2.5 py-0.5 rounded-full font-bold">Admin Locked</span>
-        </div>
-
-        <div class="space-y-3 mt-3">
-          <div>
-            <label class="block text-xs font-bold text-slate-600 mb-1">Bhishi Group Name</label>
-            <input type="text" id="cfgBhishiName" class="w-full text-xs font-medium px-3 py-2 border border-slate-200 rounded-xl focus:outline-none focus:ring-1 focus:ring-indigo-500">
-          </div>
-
-          <div class="grid grid-cols-2 gap-2">
-            <div>
-              <label class="block text-xs font-bold text-slate-600 mb-1">Monthly Per Head (₹)</label>
-              <input type="number" id="cfgMonthlyAmount" value="3500" class="w-full text-xs font-medium px-3 py-2 border border-slate-200 rounded-xl focus:outline-none focus:ring-1 focus:ring-indigo-500">
-            </div>
-            <div>
-              <label class="block text-xs font-bold text-slate-600 mb-1">Total Duration (Months)</label>
-              <input type="number" id="cfgTotalMonths" value="10" class="w-full text-xs font-medium px-3 py-2 border border-slate-200 rounded-xl focus:outline-none focus:ring-1 focus:ring-indigo-500">
-            </div>
-          </div>
-
-          <div class="grid grid-cols-2 gap-2">
-            <div>
-              <label class="block text-xs font-bold text-slate-600 mb-1">Current Active Month (1-10)</label>
-              <input type="number" id="cfgCurrentMonth" min="1" max="10" value="1" class="w-full text-xs font-medium px-3 py-2 border border-slate-200 rounded-xl focus:outline-none focus:ring-1 focus:ring-indigo-500">
-            </div>
-            <div>
-              <label class="block text-xs font-bold text-slate-600 mb-1">Admin Passcode (PIN)</label>
-              <input type="password" id="cfgAdminPin" value="7788" class="w-full text-xs font-medium px-3 py-2 border border-slate-200 rounded-xl focus:outline-none focus:ring-1 focus:ring-indigo-500">
-            </div>
-          </div>
-
-          <div class="pt-2 flex flex-col gap-2">
-            <button id="saveGlobalConfigBtn" class="w-full py-2.5 bg-indigo-600 hover:bg-indigo-700 active:scale-95 text-white text-xs font-bold rounded-xl shadow-sm transition">
-              Save Configuration
-            </button>
-            <button id="nextMonthAdvanceBtn" class="w-full py-2.5 bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white text-xs font-bold rounded-xl shadow-sm transition">
-              Advance to Next Month (Archived & Reset)
-            </button>
-            <button id="adminAddNewMemberBtn" class="w-full py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold rounded-xl transition">
-              + Add New Member Slot
-            </button>
-            <button id="resetSampleDataBtn" class="w-full py-2 text-rose-600 hover:bg-rose-50 text-xs font-semibold rounded-xl transition">
-              Reset Group to Clean 10-Member Template
-            </button>
+          <div class="metric-sub">
+            <span>Remaining</span>
+            <strong id="remainingAmount">₹35,000</strong>
           </div>
         </div>
       </div>
-    </div>
-  </main>
 
-  <nav class="fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur-md border-t border-slate-200/80 z-40">
-    <div class="max-w-md mx-auto grid grid-cols-5 text-center text-[10px] font-bold py-1.5 px-1">
-      <button data-target="viewDashboard" class="nav-tab-btn py-1 text-indigo-600 flex flex-col items-center">
-        <svg class="w-5 h-5 mb-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"></path></svg>
-        <span>Board</span>
-      </button>
+      <div class="section-title">
+        <span>Members (10)</span>
+        <small id="paidRatioText" style="color:var(--gray-500); font-weight:600;">0/10 Paid</small>
+      </div>
 
-      <button data-target="viewRegister" class="nav-tab-btn py-1 text-slate-400 hover:text-slate-700 flex flex-col items-center">
-        <svg class="w-5 h-5 mb-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
-        <span>Register</span>
-      </button>
+      <div id="membersContainer" class="member-grid"></div>
+    </section>
 
-      <button data-target="viewWheel" class="nav-tab-btn py-1 text-slate-400 hover:text-slate-700 flex flex-col items-center">
-        <div class="relative">
-          <svg class="w-5 h-5 mb-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-          <span class="absolute -top-1 -right-2 bg-rose-500 text-white rounded-full text-[8px] w-3.5 h-3.5 flex items-center justify-center font-bold" id="badgeWheelEligible">10</span>
+    <!-- 2. REGISTER / LEDGER TAB -->
+    <section id="tab-register" class="view-panel">
+      <div class="section-title">
+        <span>10-Month Master Ledger</span>
+      </div>
+      <div class="table-card">
+        <table>
+          <thead>
+            <tr>
+              <th style="position:sticky; left:0; background:var(--gray-50); z-index:2;">Member</th>
+              <th>M1</th><th>M2</th><th>M3</th><th>M4</th><th>M5</th>
+              <th>M6</th><th>M7</th><th>M8</th><th>M9</th><th>M10</th>
+            </tr>
+          </thead>
+          <tbody id="registerTableBody"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- 3. LUCKY WHEEL TAB -->
+    <section id="tab-wheel" class="view-panel">
+      <div class="section-title">
+        <span>Lucky Draw Wheel</span>
+      </div>
+      <div class="wheel-container">
+        <canvas id="wheelCanvas" width="300" height="300"></canvas>
+        <button class="btn-spin" id="spinButton" onclick="spinWheel()">SPIN FOR MONTH POT</button>
+        <h3 id="wheelAnnouncement" style="margin-top:14px; text-align:center; color:var(--primary);"></h3>
+      </div>
+    </section>
+
+    <!-- 4. CHAT TAB -->
+    <section id="tab-chat" class="view-panel">
+      <div class="quick-chips">
+        <button class="chip" onclick="quickSend('✅ Paid ₹3,500 via UPI!')">✅ Paid ₹3,500</button>
+        <button class="chip" onclick="quickSend('📸 Sent payment screenshot')">📸 Sent Screenshot</button>
+        <button class="chip" onclick="quickSend('🎯 When is this month\'s lucky draw?')">🎯 Lucky Draw Date?</button>
+      </div>
+      <div class="chat-container" style="margin-top:10px;">
+        <div class="chat-messages" id="chatList"></div>
+        <div class="chat-input-row">
+          <input type="text" id="chatSenderName" placeholder="Your Name" style="width:28%;" />
+          <input type="text" id="chatTextInput" placeholder="Type a message or UPI ref..." onkeydown="if(event.key==='Enter') sendChatMessage()" />
+          <button onclick="sendChatMessage()">Send</button>
         </div>
-        <span>Wheel</span>
-      </button>
-
-      <button data-target="viewChat" class="nav-tab-btn py-1 text-slate-400 hover:text-slate-700 flex flex-col items-center">
-        <svg class="w-5 h-5 mb-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path></svg>
-        <span>Chat</span>
-      </button>
-
-      <button data-target="viewSettings" class="nav-tab-btn py-1 text-slate-400 hover:text-slate-700 flex flex-col items-center">
-        <svg class="w-5 h-5 mb-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
-        <span>Admin</span>
-      </button>
-    </div>
-  </nav>
-
-  <!-- User Picker Modal -->
-  <div id="modalUserPicker" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
-    <div class="bg-white rounded-3xl max-w-sm w-full p-5 shadow-2xl border border-slate-100">
-      <div class="flex items-center justify-between mb-2">
-        <h3 class="font-bold text-slate-800 text-sm">Select Your Identity</h3>
-        <button id="closeUserPickerBtn" class="text-slate-400 text-lg font-bold p-1">&times;</button>
       </div>
-      <p class="text-xs text-slate-500 mb-3">Choose your name to mark your payment or chat.</p>
+    </section>
 
-      <div id="userPickerList" class="space-y-1.5 max-h-64 overflow-y-auto custom-scroll pr-1">
-        <!-- Rendered by JS -->
+    <!-- 5. ADMIN TAB -->
+    <section id="tab-admin" class="view-panel">
+      <div class="section-title">
+        <span>Organizer Controls</span>
       </div>
-    </div>
+      <div style="background:white; border-radius:14px; border:1px solid var(--gray-200); padding:16px; display:flex; flex-direction:column; gap:12px;">
+        <label style="font-size:0.85rem; font-weight:700;">Admin PIN (Default 7788)</label>
+        <input type="password" id="adminPinInput" placeholder="Enter PIN to unlock" style="padding:10px; border-radius:8px; border:1px solid var(--gray-200);" />
+        
+        <div style="display:flex; gap:10px; margin-top:6px;">
+          <button onclick="advanceMonth()" style="flex:1; background:var(--primary); color:white; border:none; padding:12px; border-radius:8px; font-weight:700;">Advance to Next Month</button>
+          <button onclick="resetCycle()" style="flex:1; background:var(--danger-light); color:var(--danger); border:1px solid var(--danger); padding:12px; border-radius:8px; font-weight:700;">Reset Cycle</button>
+        </div>
+      </div>
+    </section>
+
   </div>
 
-  <!-- Admin Passcode Modal -->
-  <div id="modalAdminPin" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
-    <div class="bg-white rounded-3xl max-w-xs w-full p-5 shadow-2xl border border-slate-100 text-center">
-      <div class="w-12 h-12 bg-amber-100 text-amber-800 rounded-2xl mx-auto flex items-center justify-center text-xl mb-2 font-bold">
-        🔑
-      </div>
-      <h3 class="font-bold text-slate-800 text-sm">Organizer PIN Required</h3>
-      <p class="text-[11px] text-slate-500 mt-1 mb-3">Default passcode is <code class="bg-slate-100 px-1 py-0.5 rounded font-mono font-bold">7788</code></p>
-      
-      <input type="password" id="inputAdminPinAttempt" maxlength="8" placeholder="Enter PIN" class="w-full text-center text-lg font-mono tracking-widest py-2 border border-slate-200 rounded-xl mb-3 focus:outline-none focus:ring-2 focus:ring-indigo-500/20">
-      
-      <div class="flex gap-2">
-        <button id="cancelAdminPinBtn" class="flex-1 py-2 text-xs font-semibold text-slate-500 hover:bg-slate-100 rounded-xl transition">Cancel</button>
-        <button id="submitAdminPinBtn" class="flex-1 py-2 text-xs font-bold bg-indigo-600 text-white rounded-xl transition">Unlock</button>
-      </div>
-    </div>
-  </div>
+  <!-- Bottom Navigation -->
+  <nav class="bottom-nav">
+    <button class="nav-item active" onclick="switchTab('dashboard')">
+      <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
+      Dashboard
+    </button>
+    <button class="nav-item" onclick="switchTab('register')">
+      <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+      Register
+    </button>
+    <button class="nav-item" onclick="switchTab('wheel')">
+      <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+      Wheel
+    </button>
+    <button class="nav-item" onclick="switchTab('chat')">
+      <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg>
+      Chat
+    </button>
+    <button class="nav-item" onclick="switchTab('admin')">
+      <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 Here is your complete, updated `index.html` file. 
 
-  <!-- Member Profile / Edit Modal -->
-  <div id="modalMemberEdit" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
-    <div class="bg-white rounded-3xl max-w-sm w-full p-5 shadow-2xl border border-slate-100">
-      <div class="flex items-center justify-between mb-3">
-        <h3 class="font-bold text-slate-800 text-sm" id="memberEditModalTitle">Edit Member</h3>
-        <button id="closeMemberEditModalBtn" class="text-slate-400 text-xl font-bold p-1">&times;</button>
-      </div>
+Your Google Apps Script URL (`https://script.google.com/macros/s/AKfycbz5TvmjWr_oY_YZdyf2_COIx57vMYIhaAMb-n_3gq1Dtp1fiLNoi0xbCf68QZdhz7hQ/exec`) is plugged in directly. It automatically polls the cloud every 4 seconds and pushes any updates (payments, wheel spin winners, name edits, or chat messages) to your Google Sheet so all 10 phones stay synchronized.
 
-      <form id="memberEditForm" class="space-y-3">
-        <input type="hidden" id="editMemberId">
-        <div>
-          <label class="block text-xs font-bold text-slate-600 mb-1">Full / Display Name</label>
-          <input type="text" id="editMemberName" required class="w-full text-xs px-3 py-2 border border-slate-200 rounded-xl focus:outline-none focus:ring-1 focus:ring-indigo-500">
-        </div>
-        <div>
-          <label class="block text-xs font-bold text-slate-600 mb-1">WhatsApp / Phone Number</label>
-          <input type="tel" id="editMemberPhone" placeholder="e.g. 9822001122" class="w-full text-xs px-3 py-2 border border-slate-200 rounded-xl focus:outline-none focus:ring-1 focus:ring-indigo-500">
-        </div>
-        <div>
-          <label class="block text-xs font-bold text-slate-600 mb-1">Avatar Emoji</label>
-          <div class="flex gap-2 text-xl" id="avatarPickerGroup">
-            <label class="cursor-pointer"><input type="radio" name="avatarOpt" value="👤" class="hidden"> <span class="avatar-badge p-1.5 rounded-xl border inline-block">👤</span></label>
-            <label class="cursor-pointer"><input type="radio" name="avatarOpt" value="🦁" class="hidden"> <span class="avatar-badge p-1.5 rounded-xl border inline-block">🦁</span></label>
-            <label class="cursor-pointer"><input type="radio" name="avatarOpt" value="🚀" class="hidden"> <span class="avatar-badge p-1.5 rounded-xl border inline-block">🚀</span></label>
-            <label class="cursor-pointer"><input type="radio" name="avatarOpt" value="👑" class="hidden"> <span class="avatar-badge p-1.5 rounded-xl border inline-block">👑</span></label>
-            <label class="cursor-pointer"><input type="radio" name="avatarOpt" value="💎" class="hidden"> <span class="avatar-badge p-1.5 rounded-xl border inline-block">💎</span></label>
-            <label class="cursor-pointer"><input type="radio" name="avatarOpt" value="⭐" class="hidden"> <span class="avatar-badge p-1.5 rounded-xl border inline-block">⭐</span></label>
-          </div>
-        </div>
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+  <title>Bhishi Group Manager</title>
+  
+  <link rel="preconnect" href="[https://fonts.googleapis.com](https://fonts.googleapis.com)">
+  <link rel="preconnect" href="[https://fonts.gstatic.com](https://fonts.gstatic.com)" crossorigin>
+  <link href="[https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap](https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap)" rel="stylesheet">
+  <script src="[https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js](https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js)"></script>
 
-        <div id="adminOnlyMemberFields" class="pt-2 border-t border-slate-100 hidden">
-          <label class="flex items-center gap-2 cursor-pointer">
-            <input type="checkbox" id="editMemberHasTaken" class="w-4 h-4 text-indigo-600 rounded">
-            <span class="text-xs font-bold text-amber-800">Has Claimed Pot (Ineligible for Lucky Draw)</span>
-          </label>
-        </div>
-
-        <div class="flex gap-2 pt-2">
-          <button type="button" id="cancelMemberEditBtn" class="flex-1 py-2 text-xs font-semibold text-slate-500 rounded-xl hover:bg-slate-50 transition">Cancel</button>
-          <button type="submit" class="flex-1 py-2 bg-indigo-600 text-white text-xs font-bold rounded-xl hover:bg-indigo-700 transition">Save Changes</button>
-        </div>
-      </form>
-    </div>
-  </div>
-
-  <!-- Winner Modal -->
-  <div id="modalWinner" class="fixed inset-0 bg-slate-900/70 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
-    <div class="bg-white rounded-3xl max-w-sm w-full p-6 text-center shadow-2xl border border-slate-100">
-      <div class="w-16 h-16 rounded-full bg-amber-100 border-4 border-amber-300 mx-auto flex items-center justify-center text-3xl mb-2 animate-bounce">
-        🏆
-      </div>
-      <h3 class="text-lg font-black text-slate-800">Lucky Winner Chosen!</h3>
-      <p class="text-xs text-slate-500 mt-0.5">Pot recipient for Month <span id="winnerAnnounceMonth">1</span>:</p>
-
-      <div class="my-3 py-3 px-4 bg-amber-50 rounded-2xl border border-amber-200">
-        <h4 id="winnerAnnounceName" class="text-xl font-black text-amber-950">Name</h4>
-        <p class="text-xs font-bold text-amber-700 mt-0.5" id="winnerAnnounceAmount">Lump sum: ₹35,000</p>
-      </div>
-
-      <div class="space-y-1.5">
-        <button id="confirmWinnerPotBtn" class="w-full py-2.5 rounded-xl bg-amber-500 hover:bg-amber-600 active:scale-95 text-white text-xs font-bold shadow-md shadow-amber-500/20 transition">
-          Confirm & Award Month Pot
-        </button>
-        <button id="dismissWinnerBtn" class="w-full py-2 rounded-xl text-slate-400 hover:bg-slate-100 text-xs font-semibold transition">
-          Spin Again
-        </button>
-      </div>
-    </div>
-  </div>
-
-  <!-- Custom Alert Toast -->
-  <div id="toastBox" class="fixed bottom-20 left-1/2 transform -translate-x-1/2 z-50 transition-all duration-300 pointer-events-none opacity-0 translate-y-3">
-    <div class="bg-slate-900 text-white text-xs font-bold px-4 py-2.5 rounded-full shadow-2xl flex items-center gap-1.5" id="toastMsg">
-      Action Complete
-    </div>
-  </div>
-
-  <script>
-    // Initial 10 Members Template
-    const INITIAL_MEMBERS = [
-      { id: "m1",  name: "Onkar",    phone: "", avatar: "👤", paidCurrentMonth: false, history: {}, hasTaken: false, takenMonth: null },
-      { id: "m2",  name: "Onkar 2",  phone: "", avatar: "👤", paidCurrentMonth: false, history: {}, hasTaken: false, takenMonth: null },
-      { id: "m3",  name: "Shubham",  phone: "", avatar: "👤", paidCurrentMonth: false, history: {}, hasTaken: false, takenMonth: null },
-      { id: "m4",  name: "Mangesh",  phone: "", avatar: "👤", paidCurrentMonth: false, history: {}, hasTaken: false, takenMonth: null },
-      { id: "m5",  name: "Akash",    phone: "", avatar: "👤", paidCurrentMonth: false, history: {}, hasTaken: false, takenMonth: null },
-      { id: "m6",  name: "R.K.",     phone: "", avatar: "👤", paidCurrentMonth: false, history: {}, hasTaken: false, takenMonth: null },
-      { id: "m7",  name: "Abhishek", phone: "", avatar: "👤", paidCurrentMonth: false, history: {}, hasTaken: false, takenMonth: null },
-      { id: "m8",  name: "Vishal",   phone: "", avatar: "👤", paidCurrentMonth: false, history: {}, hasTaken: false, takenMonth: null },
-      { id: "m9",  name: "Chinmay",  phone: "", avatar: "👤", paidCurrentMonth: false, history: {}, hasTaken: false, takenMonth: null },
-      { id: "m10", name: "Avinash",  phone: "", avatar: "👤", paidCurrentMonth: false, history: {}, hasTaken: false, takenMonth: null }
-    ];
-
-    const DEFAULT_CONFIG = {
-      name: "Solapur 10-Month Bhishi",
-      monthlyAmount: 3500,
-      totalMonths: 10,
-      currentMonth: 1,
-      adminPin: "7788",
-      currentWinnerId: null
-    };
-
-    const STORAGE_KEY = "bhishi_group_master_store_v2";
-
-    let store = {
-      config: { ...DEFAULT_CONFIG },
-      members: [...INITIAL_MEMBERS],
-      chat: [] // Starts completely empty as requested
-    };
-
-    let session = {
-      isAdmin: false,
-      currentMemberId: null,
-      currentMemberName: "Guest",
-      currentAvatar: "👤"
-    };
-
-    let activeFilter = "all";
-    let pendingWinner = null;
-
-    // Load LocalStorage state
-    function loadState() {
-      try {
-        const saved = localStorage.getItem(STORAGE_KEY);
-        if (saved) {
-          const parsed = JSON.parse(saved);
-          if (parsed.config) store.config = { ...DEFAULT_CONFIG, ...parsed.config };
-          if (Array.isArray(parsed.members)) store.members = parsed.members;
-          if (Array.isArray(parsed.chat)) store.chat = parsed.chat;
-        }
-      } catch (e) {
-        console.warn("Storage load error:", e);
-      }
+  <style>
+    :root {
+      --primary: #4338ca;
+      --primary-light: #eef2ff;
+      --success: #059669;
+      --success-light: #ecfdf5;
+      --danger: #dc2626;
+      --danger-light: #fef2f2;
+      --warning: #d97706;
+      --warning-light: #fffbeb;
+      --bg: #f8fafc;
+      --card-bg: #ffffff;
+      --text: #0f172a;
+      --text-muted: #64748b;
+      --border: #e2e8f0;
+      --radius: 16px;
+      --shadow-sm: 0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04);
+      --shadow-md: 0 4px 6px -1px rgba(0,0,0,0.07), 0 2px 4px -2px rgba(0,0,0,0.05);
+      --shadow-lg: 0 10px 15px -3px rgba(0,0,0,0.08), 0 4px 6px -4px rgba(0,0,0,0.04);
     }
 
-    function saveState() {
-      try {
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(store));
-      } catch (e) {
-        console.error("Storage save error:", e);
-      }
-      renderAll();
+    * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+    
+    body {
+      font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+      background-color: var(--bg);
+      color: var(--text);
+      margin: 0;
+      padding: 0;
+      padding-bottom: calc(75px + env(safe-area-inset-bottom));
+      line-height: 1.5;
     }
 
-    // Audio synthesizer for lucky wheel tick
-    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-    function playBeep(freq = 580, dur = 0.03) {
-      try {
-        if (audioCtx.state === 'suspended') audioCtx.resume();
-        const osc = audioCtx.createOscillator();
-        const gain = audioCtx.createGain();
-        osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
-        gain.gain.setValueAtTime(0.12, audioCtx.currentTime);
-        gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + dur);
-        osc.connect(gain);
-        gain.connect(audioCtx.destination);
-        osc.start();
-        osc.stop(audioCtx.currentTime + dur);
-      } catch(e) {}
+    .cloud-status {
+      font-size: 11px;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 3px 8px;
+      border-radius: 20px;
+      background: #f1f5f9;
+      color: var(--text-muted);
+      font-weight: 600;
+    }
+    .status-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: #94a3b8;
+    }
+    .status-dot.synced { background: #10b981; }
+    .status-dot.syncing { background: #f59e0b; animation: pulse 1s infinite; }
+    @keyframes pulse { 0% { opacity: 0.3; } 50% { opacity: 1; } 100% { opacity: 0.3; } }
+
+    header {
+      background: var(--card-bg);
+      border-bottom: 1px solid var(--border);
+      padding: 16px 20px;
+      position: sticky;
+      top: 0;
+      z-index: 40;
+    }
+    .header-inner {
+      max-width: 900px;
+      margin: auto;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .brand { font-size: 19px; font-weight: 800; color: var(--primary); letter-spacing: -0.5px; }
+
+    main { max-width: 900px; margin: auto; padding: 16px; }
+
+    .summary-card {
+      background: linear-gradient(135deg, #3730a3 0%, #4f46e5 100%);
+      color: white;
+      border-radius: var(--radius);
+      padding: 20px;
+      margin-bottom: 20px;
+      box-shadow: var(--shadow-lg);
+    }
+    .stats-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-top: 16px; }
+    .stat-pill { background: rgba(255,255,255,0.14); padding: 10px 12px; border-radius: 12px; backdrop-filter: blur(8px); }
+    .stat-pill .label { font-size: 11px; opacity: 0.85; text-transform: uppercase; font-weight: 600; }
+    .stat-pill .val { font-size: 17px; font-weight: 700; margin-top: 2px; }
+
+    .progress-wrap { margin-top: 14px; background: rgba(0,0,0,0.2); border-radius: 10px; height: 8px; overflow: hidden; }
+    .progress-bar { height: 100%; background: #34d399; transition: width 0.4s ease; }
+
+    .grid { display: grid; grid-template-columns: 1fr; gap: 12px; }
+    @media (min-width: 640px) { .grid { grid-template-columns: 1fr 1fr; gap: 16px; } }
+
+    .member-card {
+      background: var(--card-bg);
+      border: 1.5px solid var(--border);
+      border-radius: var(--radius);
+      padding: 16px;
+      box-shadow: var(--shadow-sm);
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      transition: all 0.2s ease;
+    }
+    .member-card.paid { border-color: var(--success); background-color: #fbfdfc; }
+    .member-card.claimed { border-color: #cbd5e1; background-color: #f8fafc; opacity: 0.85; }
+    .member-card.winner-now { border-color: var(--warning); background-color: #fffdf5; box-shadow: 0 0 0 2px var(--warning); }
+
+    .member-header { display: flex; align-items: center; justify-content: space-between; }
+    .avatar-meta { display: flex; align-items: center; gap: 12px; }
+    .avatar {
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      background: var(--primary-light);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+    }
+    .name-title { font-weight: 700; font-size: 16px; line-height: 1.2; }
+    .meta-sub { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
+
+    .badge {
+      font-size: 11px;
+      font-weight: 700;
+      padding: 4px 8px;
+      border-radius: 8px;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .badge-paid { background: var(--success-light); color: var(--success); }
+    .badge-due { background: var(--danger-light); color: var(--danger); }
+    .badge-claimed { background: #e2e8f0; color: #475569; }
+    .badge-pot { background: var(--warning-light); color: var(--warning); border: 1px solid #fde68a; }
+
+    .member-actions {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-top: 1px solid var(--border);
+      padding-top: 12px;
+      margin-top: 2px;
     }
 
-    function showToast(msg) {
-      const toast = document.getElementById("toastBox");
-      document.getElementById("toastMsg").innerText = msg;
-      toast.classList.remove("opacity-0", "translate-y-3");
-      setTimeout(() => {
-        toast.classList.add("opacity-0", "translate-y-3");
-      }, 2600);
+    .btn {
+      appearance: none;
+      border: none;
+      border-radius: 10px;
+      font-weight: 600;
+      font-size: 13px;
+      padding: 8px 14px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      transition: all 0.15s ease;
+      font-family: inherit;
     }
+    .btn:active { transform: scale(0.97); }
+    .btn-primary { background: var(--primary); color: white; }
+    .btn-success { background: var(--success); color: white; }
+    .btn-outline { background: transparent; border: 1px solid var(--border); color: var(--text); }
 
-    function renderAll() {
-      const { config, members } = store;
-      const amountPerHead = config.monthlyAmount || 3500;
-      const totalPool = members.length * amountPerHead;
+    .tab-content { display: none; }
+    .tab-content.active { display: block; animation: fadeIn 0.25s ease; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
 
-      const paidMembers = members.filter(m => m.paidCurrentMonth);
-      const pendingMembers = members.filter(m => !m.paidCurrentMonth);
-      const eligibleMembers = members.filter(m => !m.hasTaken);
-      const collectedAmount = paidMembers.length * amountPerHead;
-      const pendingAmount = pendingMembers.length * amountPerHead;
-      const pct = members.length > 0 ? Math.round((paidMembers.length / members.length) * 100) : 0;
-
-      // Header labels
-      document.getElementById("headerBhishiName").innerText = config.name;
-      document.getElementById("headerMonthBadge").innerText = `Month ${config.currentMonth} / ${config.totalMonths}`;
-      document.getElementById("roleIndicatorText").innerText = session.isAdmin ? "Mode: Organizer Admin" : `You: ${session.currentMemberName}`;
-
-      // KPI stats
-      document.getElementById("statPerHead").innerText = `₹${amountPerHead.toLocaleString('en-IN')}`;
-      document.getElementById("statMembersCount").innerText = `${members.length} Members`;
-      document.getElementById("statMonthlyPool").innerText = `₹${totalPool.toLocaleString('en-IN')}`;
-      document.getElementById("statCollectedAmount").innerText = `₹${collectedAmount.toLocaleString('en-IN')}`;
-      document.getElementById("statPaidRatio").innerText = `${paidMembers.length} / ${members.length} Paid`;
-      document.getElementById("statPendingAmount").innerText = `₹${pendingAmount.toLocaleString('en-IN')}`;
-      document.getElementById("statPendingRatio").innerText = `${pendingMembers.length} Due`;
-
-      // Progress Bar
-      document.getElementById("progressPercentage").innerText = `${pct}%`;
-      document.getElementById("progressBarFill").style.width = `${pct}%`;
-
-      // Filter tabs counts
-      document.getElementById("countAll").innerText = members.length;
-      document.getElementById("countPaid").innerText = paidMembers.length;
-      document.getElementById("countPending").innerText = pendingMembers.length;
-      document.getElementById("countClaimed").innerText = members.filter(m => m.hasTaken).length;
-      document.getElementById("badgeWheelEligible").innerText = eligibleMembers.length;
-
-      // Winner Banner
-      const banner = document.getElementById("potWinnerBanner");
-      const clearBtn = document.getElementById("adminClearWinnerBtn");
-      if (session.isAdmin) clearBtn.classList.remove("hidden");
-      else clearBtn.classList.add("hidden");
-
-      if (config.currentWinnerId) {
-        const winner = members.find(m => m.id === config.currentWinnerId);
-        if (winner) {
-          banner.classList.remove("hidden");
-          document.getElementById("winnerReceiverName").innerText = winner.name;
-          document.getElementById("winnerReceiverSubtext").innerText = `Month #${config.currentMonth} Pot Recipient (₹${totalPool.toLocaleString('en-IN')})`;
-        } else {
-          banner.classList.add("hidden");
-        }
-      } else {
-        banner.classList.add("hidden");
-      }
-
-      // Settings form values
-      document.getElementById("cfgBhishiName").value = config.name;
-      document.getElementById("cfgMonthlyAmount").value = config.monthlyAmount;
-      document.getElementById("cfgTotalMonths").value = config.totalMonths;
-      document.getElementById("cfgCurrentMonth").value = config.currentMonth;
-      document.getElementById("cfgAdminPin").value = config.adminPin;
-
-      renderMembersList();
-      renderLedgerMatrix();
-      renderChat();
-      drawWheel();
-      updateWheelText();
+    .tab-bar {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: var(--card-bg);
+      border-top: 1px solid var(--border);
+      display: flex;
+      justify-content: space-around;
+      padding: 8px 0 calc(8px + env(safe-area-inset-bottom));
+      z-index: 50;
     }
-
-    function renderMembersList() {
-      const container = document.getElementById("membersCardContainer");
-      container.innerHTML = "";
-      const { config, members } = store;
-
-      const filtered = members.filter(m => {
-        if (activeFilter === "paid") return m.paidCurrentMonth;
-        if (activeFilter === "pending") return !m.paidCurrentMonth;
-        if (activeFilter === "claimed") return m.hasTaken;
-        return true;
-      });
-
-      if (filtered.length === 0) {
-        container.innerHTML = `<div class="col-span-full py-8 text-center text-slate-400 text-xs">No members found in this status tab.</div>`;
-        return;
-      }
-
-      filtered.forEach(m => {
-        const isSelf = session.currentMemberId === m.id;
-        const isReceiver = config.currentWinnerId === m.id;
-
-        const card = document.createElement("div");
-        card.className = `p-3.5 rounded-2xl border transition-all ${
-          isReceiver ? 'bg-amber-50/90 border-amber-300 ring-2 ring-amber-200' :
-          m.hasTaken ? 'bg-slate-100/70 border-slate-200 opacity-90' : 'bg-white border-slate-200/90 shadow-sm'
-        }`;
-
-        let badgeHtml = "";
-        if (isReceiver) {
-          badgeHtml = `<span class="text-[9px] bg-amber-400 text-amber-950 font-black px-2 py-0.5 rounded-full">👑 Month Winner</span>`;
-        } else if (m.hasTaken) {
-          badgeHtml = `<span class="text-[9px] bg-slate-200 text-slate-600 font-bold px-2 py-0.5 rounded-full">Pot Claimed (M${m.takenMonth || ''})</span>`;
-        } else {
-          badgeHtml = `<span class="text-[9px] bg-indigo-50 text-indigo-700 font-bold px-2 py-0.5 rounded-full">Eligible for Pot</span>`;
-        }
-
-        const reminderMsg = encodeURIComponent(`Hi ${m.name}, reminder for our ${config.name} Month ${config.currentMonth} installment of ₹${config.monthlyAmount}. Please UPI transfer today!`);
-        const whatsappLink = m.phone ? `https://wa.me/${m.phone.replace(/[^0-9]/g, '')}?text=${reminderMsg}` : `https://wa.me/?text=${reminderMsg}`;
-
-        card.innerHTML = `
-          <div class="flex items-start justify-between gap-2">
-            <div class="flex items-center gap-2.5">
-              <div class="w-10 h-10 rounded-2xl flex items-center justify-center text-lg ${m.paidCurrentMonth ? 'bg-emerald-100' : 'bg-rose-100'}">
-                ${m.avatar || '👤'}
-              </div>
-              <div>
-                <div class="flex items-center gap-1.5">
-                  <h4 class="font-extrabold text-slate-800 text-xs">${m.name}</h4>
-                  ${isSelf ? '<span class="text-[8px] bg-indigo-600 text-white font-black px-1.5 py-0.5 rounded-md uppercase">YOU</span>' : ''}
-                </div>
-                <p class="text-[10px] text-slate-400">${m.phone || 'No phone added'}</p>
-              </div>
-            </div>
-            <div>${badgeHtml}</div>
-          </div>
-
-          <div class="mt-3 pt-2.5 border-t border-slate-100 flex items-center justify-between">
-            <div class="flex items-center gap-2">
-              <button data-id="${m.id}" class="toggle-paid-btn px-3 py-1.5 rounded-xl text-[11px] font-extrabold transition flex items-center gap-1.5 active:scale-95 ${
-                m.paidCurrentMonth 
-                  ? 'bg-emerald-500 hover:bg-emerald-600 text-white shadow-xs' 
-                  : 'bg-rose-50 border border-rose-200 text-rose-700 hover:bg-rose-100'
-              }">
-                <span>${m.paidCurrentMonth ? '✓ Paid' : '✕ Due'}</span>
-              </button>
-              <span class="text-xs font-black ${m.paidCurrentMonth ? 'text-emerald-700' : 'text-rose-600'}">
-                ₹${(config.monthlyAmount || 3500).toLocaleString('en-IN')}
-              </span>
-            </div>
-
-            <div class="flex items-center gap-1.5">
-              ${!m.paidCurrentMonth ? `
-                <a href="${whatsappLink}" target="_blank" class="text-[10px] bg-emerald-50 text-emerald-700 font-bold px-2.5 py-1.5 rounded-xl border border-emerald-200 hover:bg-emerald-100 flex items-center gap-1">
-                  💬 Remind
-                </a>
-              ` : ''}
-
-              ${(isSelf || session.isAdmin) ? `
-                <button data-id="${m.id}" class="edit-member-btn text-slate-400 hover:text-slate-700 p-1.5 rounded-xl hover:bg-slate-100" title="Edit details">
-                  ✏️
-                </button>
-              ` : ''}
-
-              ${session.isAdmin ? `
-                ${!m.hasTaken ? `
-                  <button data-id="${m.id}" class="admin-assign-btn text-[10px] font-bold text-amber-900 bg-amber-200 hover:bg-amber-300 px-2 py-1 rounded-lg">
-                    Give Pot
-                  </button>
-                ` : ''}
-                <button data-id="${m.id}" class="admin-remove-btn text-rose-400 hover:text-rose-600 p-1" title="Delete">
-                  🗑️
-                </button>
-              ` : ''}
-            </div>
-          </div>
-        `;
-        container.appendChild(card);
-      });
-
-      // Bind events
-      document.querySelectorAll(".toggle-paid-btn").forEach(btn => {
-        btn.addEventListener("click", () => {
-          const id = btn.getAttribute("data-id");
-          const m = store.members.find(x => x.id === id);
-          if (m) {
-            m.paidCurrentMonth = !m.paidCurrentMonth;
-            if (!m.history) m.history = {};
-            m.history[`m${store.config.currentMonth}`] = m.paidCurrentMonth;
-            saveState();
-            showToast(`${m.name}: marked ${m.paidCurrentMonth ? 'PAID' : 'DUE'}`);
-          }
-        });
-      });
-
-      document.querySelectorAll(".edit-member-btn").forEach(btn => {
-        btn.addEventListener("click", () => {
-          const id = btn.getAttribute("data-id");
-          openMemberEditModal(id);
-        });
-      });
-
-      document.querySelectorAll(".admin-assign-btn").forEach(btn => {
-        btn.addEventListener("click", () => {
-          const id = btn.getAttribute("data-id");
-          const m = store.members.find(x => x.id === id);
-          if (m) {
-            m.hasTaken = true;
-            m.takenMonth = store.config.currentMonth;
-            store.config.currentWinnerId = m.id;
-            saveState();
-            showToast(`Awarded Month ${store.config.currentMonth} pot to ${m.name}!`);
-          }
-        });
-      });
-
-      document.querySelectorAll(".admin-remove-btn").forEach(btn => {
-        btn.addEventListener("click", () => {
-          const id = btn.getAttribute("data-id");
-          const m = store.members.find(x => x.id === id);
-          if (m) {
-            store.members = store.members.filter(x => x.id !== id);
-            saveState();
-            showToast(`Removed ${m.name}`);
-          }
-        });
-      });
+    .tab-btn {
+      background: none;
+      border: none;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 3px;
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--text-muted);
+      cursor: pointer;
+      padding: 4px 12px;
     }
+    .tab-btn.active { color: var(--primary); }
+    .tab-btn svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width: 2; }
 
-    function renderLedgerMatrix() {
-      const container = document.getElementById("ledgerMatrixRows");
-      container.innerHTML = "";
-
-      store.members.forEach(m => {
-        const row = document.createElement("div");
-        row.className = "ledger-grid py-2 px-2 items-center text-center text-xs hover:bg-slate-50 transition";
-
-        let nameHtml = `
-          <div class="text-left font-bold text-slate-800 flex items-center gap-1.5 pl-1 truncate">
-            <span>${m.avatar || '👤'}</span>
-            <span class="truncate">${m.name}</span>
-          </div>
-        `;
-
-        let cellsHtml = "";
-        for (let monthNum = 1; monthNum <= 10; monthNum++) {
-          const isPotWinner = (m.takenMonth === monthNum);
-          const isPaid = (monthNum === store.config.currentMonth) ? m.paidCurrentMonth : (m.history && m.history[`m${monthNum}`]);
-
-          if (isPotWinner) {
-            cellsHtml += `<div><span class="w-6 h-6 mx-auto rounded-md bg-amber-400 text-amber-950 font-black text-[10px] flex items-center justify-center shadow-xs">👑</span></div>`;
-          } else if (isPaid) {
-            cellsHtml += `<div><span class="w-6 h-6 mx-auto rounded-md bg-emerald-500 text-white font-bold text-[10px] flex items-center justify-center">✓</span></div>`;
-          } else {
-            cellsHtml += `<div><span class="w-6 h-6 mx-auto rounded-md bg-slate-100 text-slate-400 font-bold text-[10px] flex items-center justify-center">•</span></div>`;
-          }
-        }
-
-        const potStatusHtml = `
-          <div class="text-[10px] font-bold ${m.hasTaken ? 'text-amber-800' : 'text-slate-400'}">
-            ${m.hasTaken ? `Month ${m.takenMonth || ''}` : 'Pending'}
-          </div>
-        `;
-
-        row.innerHTML = nameHtml + cellsHtml + potStatusHtml;
-        container.appendChild(row);
-      });
+    .register-table-wrapper {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      overflow-x: auto;
+      box-shadow: var(--shadow-sm);
     }
+    table { width: 100%; border-collapse: collapse; font-size: 13px; text-align: center; }
+    th, td { padding: 12px 10px; border-bottom: 1px solid var(--border); white-space: nowrap; }
+    th { background: #f8fafc; font-weight: 700; color: var(--text-muted); font-size: 11px; text-transform: uppercase; }
+    td:first-child, th:first-child { text-align: left; position: sticky; left: 0; background: var(--card-bg); z-index: 10; border-right: 1px solid var(--border); }
+    th:first-child { background: #f8fafc; }
 
-    function renderChat() {
-      const container = document.getElementById("chatMessageList");
-      container.innerHTML = "";
-
-      const senderInput = document.getElementById("chatSenderInput");
-      if (session.currentMemberName && session.currentMemberName !== "Guest" && !senderInput.value) {
-        senderInput.value = session.currentMemberName;
-      }
-
-      if (store.chat.length === 0) {
-        container.innerHTML = `
-          <div class="h-full flex flex-col items-center justify-center text-center p-6 text-slate-400">
-            <div class="w-12 h-12 rounded-2xl bg-indigo-50 text-indigo-400 flex items-center justify-center text-xl mb-2">💬</div>
-            <p class="text-xs font-bold text-slate-600">No messages yet</p>
-            <p class="text-[11px] text-slate-400 mt-0.5">Use quick buttons above or drop your UPI UTR reference!</p>
-          </div>
-        `;
-        return;
-      }
-
-      store.chat.forEach(msg => {
-        const isBot = msg.author === "Bhishi Bot";
-        const isMe = session.currentMemberName !== "Guest" && msg.author === session.currentMemberName;
-        const div = document.createElement("div");
-        div.className = `flex flex-col ${isBot ? 'items-center my-1' : isMe ? 'items-end' : 'items-start'}`;
-
-        if (isBot) {
-          div.innerHTML = `
-            <div class="bg-amber-100 text-amber-900 border border-amber-300 text-[10px] font-bold px-3 py-1 rounded-full shadow-xs">
-              ${msg.text}
-            </div>
-          `;
-        } else {
-          div.innerHTML = `
-            <div class="max-w-[85%] rounded-2xl p-2.5 shadow-xs border ${
-              isMe 
-                ? 'bg-indigo-600 text-white border-indigo-700 rounded-br-xs' 
-                : 'bg-white text-slate-800 border-slate-200 rounded-bl-xs'
-            }">
-              <div class="flex items-center justify-between gap-2 mb-0.5">
-                <span class="font-bold text-[10px] ${isMe ? 'text-indigo-200' : 'text-indigo-600'} flex items-center gap-1">
-                  <span>${msg.avatar || '👤'}</span>
-                  <span>${msg.author}</span>
-                </span>
-                <span class="text-[9px] ${isMe ? 'text-indigo-200' : 'text-slate-400'}">${msg.time}</span>
-              </div>
-              <p class="text-xs break-words leading-relaxed ${isMe ? 'text-white' : 'text-slate-700'}">${msg.text}</p>
-            </div>
-          `;
-        }
-        container.appendChild(div);
-      });
-      container.scrollTop = container.scrollHeight;
+    .wheel-container {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 24px 16px;
+      text-align: center;
+      box-shadow: var(--shadow-sm);
+      margin-bottom: 20px;
     }
-
-    // Chat Form Send
-    document.getElementById("chatForm").addEventListener("submit", (e) => {
-      e.preventDefault();
-      const author = document.getElementById("chatSenderInput").value.trim() || session.currentMemberName;
-      const text = document.getElementById("chatTextInput").value.trim();
-      if (!author || !text) return;
-
-      const member = store.members.find(m => m.name.toLowerCase() === author.toLowerCase());
-      const avatar = member ? member.avatar : (session.currentAvatar || '👤');
-
-      store.chat.push({
-        id: 'c_' + Date.now(),
-        author: author,
-        avatar: avatar,
-        text: text,
-        time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-      });
-
-      document.getElementById("chatTextInput").value = "";
-      saveState();
-    });
-
-    // Quick chip action buttons
-    document.querySelectorAll(".quick-chip-btn").forEach(btn => {
-      btn.addEventListener("click", () => {
-        const input = document.getElementById("chatTextInput");
-        input.value = btn.innerText.trim() + " ";
-        input.focus();
-      });
-    });
-
-    // Clear Chat
-    document.getElementById("clearChatHistoryBtn").addEventListener("click", () => {
-      if (!session.isAdmin) {
-        document.getElementById("modalAdminPin").classList.remove("hidden");
-        return;
-      }
-      store.chat = [];
-      saveState();
-      showToast("Chat history cleared.");
-    });
-
-    const wheelCanvas = document.getElementById("wheelCanvas");
-    const wheelCtx = wheelCanvas.getContext("2d");
-    let wheelAngle = 0;
-    let isSpinning = false;
-    const WHEEL_COLORS = ["#4f46e5", "#ec4899", "#f59e0b", "#10b981", "#3b82f6", "#8b5cf6", "#06b6d4", "#f97316", "#84cc16", "#14b8a6"];
-
-    function getEligibleForWheel() {
-      return store.members.filter(m => !m.hasTaken);
+    .wheel-wrapper { position: relative; width: 300px; height: 300px; margin: 0 auto 20px; }
+    .wheel-pointer {
+      position: absolute;
+      top: -10px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 0;
+      height: 0;
+      border-left: 14px solid transparent;
+      border-right: 14px solid transparent;
+      border-top: 26px solid #e11d48;
+      z-index: 20;
     }
-
-    function updateWheelText() {
-      const eligible = getEligibleForWheel();
-      document.getElementById("wheelCurrentMonthLabel").innerText = store.config.currentMonth;
-      if (eligible.length === 0) {
-        document.getElementById("wheelEligibleText").innerText = "All members have received their pots!";
-      } else {
-        document.getElementById("wheelEligibleText").innerText = eligible.map(m => m.name).join(", ");
-      }
-    }
-
-    function drawWheel(angleOffset = wheelAngle) {
-      const eligible = getEligibleForWheel();
-      const numSegments = eligible.length;
-      const w = wheelCanvas.width;
-      const r = w / 2;
-
-      wheelCtx.clearRect(0, 0, w, w);
-
-      if (numSegments === 0) {
-        wheelCtx.fillStyle = "#e2e8f0";
-        wheelCtx.beginPath();
-        wheelCtx.arc(r, r, r - 6, 0, Math.PI * 2);
-        wheelCtx.fill();
-        wheelCtx.fillStyle = "#475569";
-        wheelCtx.font = "bold 13px Plus Jakarta Sans, sans-serif";
-        wheelCtx.textAlign = "center";
-        wheelCtx.fillText("10/10 Pots Distributed!", r, r);
-        return;
-      }
-
-      const arc = (Math.PI * 2) / numSegments;
-
-      for (let i = 0; i < numSegments; i++) {
-        const segStart = angleOffset + i * arc;
-        wheelCtx.beginPath();
-        wheelCtx.moveTo(r, r);
-        wheelCtx.arc(r, r, r - 6, segStart, segStart + arc);
-        wheelCtx.fillStyle = WHEEL_COLORS[i % WHEEL_COLORS.length];
-        wheelCtx.fill();
-        wheelCtx.strokeStyle = "#ffffff";
-        wheelCtx.lineWidth = 2.5;
-        wheelCtx.stroke();
-
-        wheelCtx.save();
-        wheelCtx.translate(r, r);
-        wheelCtx.rotate(segStart + arc / 2);
-        wheelCtx.textAlign = "right";
-        wheelCtx.fillStyle = "#ffffff";
-        wheelCtx.font = "bold 11px Plus Jakarta Sans, sans-serif";
-        wheelCtx.shadowColor = "rgba(0,0,0,0.4)";
-        wheelCtx.shadowBlur = 3;
-
-        let name = eligible[i].name;
-        if (name.length > 12) name = name.substring(0, 10) + "..";
-        wheelCtx.fillText(name, r - 22, 4);
-        wheelCtx.restore();
-      }
-
-      // Center Wheel Hub
-      wheelCtx.beginPath();
-      wheelCtx.arc(r, r, 22, 0, Math.PI * 2);
-      wheelCtx.fillStyle = "#ffffff";
-      wheelCtx.fill();
-      wheelCtx.strokeStyle = "#cbd5e1";
-      wheelCtx.lineWidth = 3;
-      wheelCtx.stroke();
-
-      wheelCtx.beginPath();
-      wheelCtx.arc(r, r, 9, 0, Math.PI * 2);
-      wheelCtx.fillStyle = "#4f46e5";
-      wheelCtx.fill();
-    }
-
-    document.getElementById("spinWheelBtn").addEventListener("click", () => {
-      if (isSpinning) return;
-      const eligible = getEligibleForWheel();
-      if (eligible.length === 0) {
-        showToast("All members have already taken their pots!");
-        return;
-      }
-
-      isSpinning = true;
-      document.getElementById("spinWheelBtn").disabled = true;
-      document.getElementById("wheelStatusMessage").innerText = "Spinning...";
-
-      const extraRotations = 6 + Math.floor(Math.random() * 4);
-      const randomAngle = Math.random() * Math.PI * 2;
-      const totalDelta = extraRotations * Math.PI * 2 + randomAngle;
-
-      const duration = 4200;
-      const startTime = performance.now();
-      const initialAngle = wheelAngle;
-
-      let lastTick = -1;
-      const segmentAngle = (Math.PI * 2) / eligible.length;
-
-      function frame(time) {
-        const elapsed = time - startTime;
-        const p = Math.min(elapsed / duration, 1);
-        const easeOut = 1 - Math.pow(1 - p, 3);
-        wheelAngle = initialAngle + totalDelta * easeOut;
-
-        const currentNormalized = (wheelAngle % (Math.PI * 2) + Math.PI * 2) % (Math.PI * 2);
-        const tickIdx = Math.floor(currentNormalized / segmentAngle);
-        if (tickIdx !== lastTick) {
-          playBeep(540, 0.03);
-          lastTick = tickIdx;
-        }
-
-        drawWheel(wheelAngle);
-
-        if (p < 1) {
-          requestAnimationFrame(frame);
-        } else {
-          isSpinning = false;
-          document.getElementById("spinWheelBtn").disabled = false;
-
-          let needleAngle = (3 * Math.PI / 2 - (wheelAngle % (Math.PI * 2))) % (Math.PI * 2);
-          if (needleAngle < 0) needleAngle += Math.PI * 2;
-          const winnerIndex = Math.floor(needleAngle / segmentAngle) % eligible.length;
-          const winner = eligible[winnerIndex];
-
-          announceWinner(winner);
-        }
-      }
-      requestAnimationFrame(frame);
-    });
-
-    function announceWinner(winner) {
-      pendingWinner = winner;
-      document.getElementById("wheelStatusMessage").innerText = `🎉 ${winner.name} won!`;
-
-      if (typeof confetti === 'function') {
-        confetti({ particleCount: 90, spread: 70, origin: { y: 0.6 } });
-      }
-
-      const pool = store.members.length * (store.config.monthlyAmount || 3500);
-      document.getElementById("winnerAnnounceMonth").innerText = store.config.currentMonth;
-      document.getElementById("winnerAnnounceName").innerText = winner.name;
-      document.getElementById("winnerAnnounceAmount").innerText = `Lump sum: ₹${pool.toLocaleString('en-IN')}`;
-      document.getElementById("modalWinner").classList.remove("hidden");
-    }
-
-    document.getElementById("confirmWinnerPotBtn").addEventListener("click", () => {
-      if (pendingWinner) {
-        pendingWinner.hasTaken = true;
-        pendingWinner.takenMonth = store.config.currentMonth;
-        store.config.currentWinnerId = pendingWinner.id;
-
-        store.chat.push({
-          id: 'c_' + Date.now(),
-          author: 'Bhishi Bot',
-          avatar: '👑',
-          text: `👑 Lucky Draw Winner: ${pendingWinner.name} received Month ${store.config.currentMonth} pot of ₹${(store.members.length * store.config.monthlyAmount).toLocaleString('en-IN')}!`,
-          time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-        });
-
-        saveState();
-        showToast(`Assigned Month #${store.config.currentMonth} pot to ${pendingWinner.name}`);
-      }
-      document.getElementById("modalWinner").classList.add("hidden");
-    });
-
-    document.getElementById("dismissWinnerBtn").addEventListener("click", () => {
-      document.getElementById("modalWinner").classList.add("hidden");
-    });
-
-    document.getElementById("adminClearWinnerBtn").addEventListener("click", () => {
-      store.config.currentWinnerId = null;
-      saveState();
-      showToast("Cleared active month recipient.");
-    });
-
-    function openMemberEditModal(memberId = null) {
-      const modal = document.getElementById("modalMemberEdit");
-      const title = document.getElementById("memberEditModalTitle");
-      const idInput = document.getElementById("editMemberId");
-      const nameInput = document.getElementById("editMemberName");
-      const phoneInput = document.getElementById("editMemberPhone");
-      const hasTakenCheck = document.getElementById("editMemberHasTaken");
-      const adminFields = document.getElementById("adminOnlyMemberFields");
-
-      if (session.isAdmin) adminFields.classList.remove("hidden");
-      else adminFields.classList.add("hidden");
-
-      if (memberId) {
-        const m = store.members.find(x => x.id === memberId);
-        if (m) {
-          title.innerText = `Edit: ${m.name}`;
-          idInput.value = m.id;
-          nameInput.value = m.name;
-          phoneInput.value = m.phone || "";
-          hasTakenCheck.checked = !!m.hasTaken;
-          const radio = document.querySelector(`input[name="avatarOpt"][value="${m.avatar || '👤'}"]`);
-          if (radio) radio.checked = true;
-        }
-      } else {
-        title.innerText = "Add New Member";
-        idInput.value = "";
-        nameInput.value = "";
-        phoneInput.value = "";
-        hasTakenCheck.checked = false;
-      }
-
-      modal.classList.remove("hidden");
-    }
-
-    document.getElementById("closeMemberEditModalBtn").addEventListener("click", () => document.getElementById("modalMemberEdit").classList.add("hidden"));
-    document.getElementById("cancelMemberEditBtn").addEventListener("click", () => document.getElementById("modalMemberEdit").classList.add("hidden"));
-
-    document.getElementById("memberEditForm").addEventListener("submit", (e) => {
-      e.preventDefault();
-      const id = document.getElementById("editMemberId").value;
-      const name = document.getElementById("editMemberName").value.trim();
-      const phone = document.getElementById("editMemberPhone").value.trim();
-      const selectedAvatar = document.querySelector('input[name="avatarOpt"]:checked')?.value || "👤";
-      const hasTaken = document.getElementById("editMemberHasTaken").checked;
-
-      if (!name) return;
-
-      if (id) {
-        const m = store.members.find(x => x.id === id);
-        if (m) {
-          m.name = name;
-          m.phone = phone;
-          m.avatar = selectedAvatar;
-          if (session.isAdmin) m.hasTaken = hasTaken;
-          if (session.currentMemberId === m.id) {
-            session.currentMemberName = m.name;
-            session.currentAvatar = m.avatar;
-          }
-          showToast(`Updated ${name}`);
-        }
-      } else {
-        if (!session.isAdmin) {
-          showToast("Admin access required to add members!");
-          return;
-        }
-        const newId = 'm_' + Date.now();
-        store.members.push({
-          id: newId,
-          name: name,
-          phone: phone,
-          avatar: selectedAvatar,
-          paidCurrentMonth: false,
-          history: {},
-          hasTaken: hasTaken,
-          takenMonth: null
-        });
-        showToast(`Added ${name}`);
-      }
-
-      saveState();
-      document.getElementById("modalMemberEdit").classList.add("hidden");
-    });
-
-    // Profile Identity Selector
-    document.getElementById("userSelectorBtn").addEventListener("click", () => {
-      const modal = document.getElementById("modalUserPicker");
-      const list = document.getElementById("userPickerList");
-      list.innerHTML = "";
-
-      store.members.forEach(m => {
-        const btn = document.createElement("button");
-        btn.className = "w-full text-left p-2.5 rounded-2xl text-xs font-bold hover:bg-slate-100 flex items-center justify-between transition";
-        btn.innerHTML = `
-          <div class="flex items-center gap-2">
-            <span>${m.avatar || '👤'}</span>
-            <span>${m.name}</span>
-          </div>
-          <span class="text-[10px] text-slate-400">${m.phone ? m.phone.slice(-4) : ''}</span>
-        `;
-        btn.onclick = () => {
-          session.currentMemberId = m.id;
-          session.currentMemberName = m.name;
-          session.currentAvatar = m.avatar || "👤";
-          document.getElementById("myProfileLabel").innerText = m.name.split(' ')[0];
-          document.getElementById("myAvatarIcon").innerText = m.avatar || "👤";
-          document.getElementById("chatSenderInput").value = m.name;
-          showToast(`Active profile: ${m.name}`);
-          modal.classList.add("hidden");
-          renderAll();
-        };
-        list.appendChild(btn);
-      });
-
-      modal.classList.remove("hidden");
-    });
-
-    document.getElementById("closeUserPickerBtn").addEventListener("click", () => {
-      document.getElementById("modalUserPicker").classList.add("hidden");
-    });
-
-    // Admin Toggle & PIN Logic
-    document.getElementById("adminToggleBtn").addEventListener("click", () => {
-      if (session.isAdmin) {
-        session.isAdmin = false;
-        document.getElementById("adminBtnLabel").innerText = "Admin";
-        document.getElementById("adminLockIcon").innerText = "🔒";
-        document.getElementById("adminLockBadge").innerText = "Admin Locked";
-        showToast("Exited Admin Mode.");
-        renderAll();
-      } else {
-        document.getElementById("inputAdminPinAttempt").value = "";
-        document.getElementById("modalAdminPin").classList.remove("hidden");
-      }
-    });
-
-    document.getElementById("cancelAdminPinBtn").addEventListener("click", () => {
-      document.getElementById("modalAdminPin").classList.add("hidden");
-    });
-
-    document.getElementById("submitAdminPinBtn").addEventListener("click", () => {
-      const pin = document.getElementById("inputAdminPinAttempt").value.trim();
-      if (pin === store.config.adminPin) {
-        session.isAdmin = true;
-        document.getElementById("adminBtnLabel").innerText = "Exit Admin";
-        document.getElementById("adminLockIcon").innerText = "🔓";
-        document.getElementById("adminLockBadge").innerText = "Admin Unlocked";
-        document.getElementById("modalAdminPin").classList.add("hidden");
-        showToast("Organizer Admin Unlocked!");
-        renderAll();
-      } else {
-        showToast("Invalid PIN! Try 7788");
-      }
-    });
-
-    // Global Settings Save
-    document.getElementById("saveGlobalConfigBtn").addEventListener("click", () => {
-      if (!session.isAdmin) {
-        document.getElementById("modalAdminPin").classList.remove("hidden");
-        return;
-      }
-      store.config.name = document.getElementById("cfgBhishiName").value.trim() || "Friends Bhishi";
-      store.config.monthlyAmount = parseInt(document.getElementById("cfgMonthlyAmount").value) || 3500;
-      store.config.totalMonths = parseInt(document.getElementById("cfgTotalMonths").value) || 10;
-      store.config.currentMonth = parseInt(document.getElementById("cfgCurrentMonth").value) || 1;
-      store.config.adminPin = document.getElementById("cfgAdminPin").value.trim() || "7788";
-
-      saveState();
-      showToast("Group configuration saved!");
-    });
-
-    // Advance to Next Month
-    document.getElementById("nextMonthAdvanceBtn").addEventListener("click", () => {
-      if (!session.isAdmin) {
-        document.getElementById("modalAdminPin").classList.remove("hidden");
-        return;
-      }
-
-      const curr = store.config.currentMonth;
-      store.members.forEach(m => {
-        if (!m.history) m.history = {};
-        m.history[`m${curr}`] = m.paidCurrentMonth;
-        m.paidCurrentMonth = false;
-      });
-
-      store.config.currentMonth = Math.min(curr + 1, store.config.totalMonths);
-      store.config.currentWinnerId = null;
-
-      saveState();
-      showToast(`Welcome to Month ${store.config.currentMonth}! Payment statuses reset.`);
-    });
-
-    document.getElementById("adminAddNewMemberBtn").addEventListener("click", () => {
-      if (!session.isAdmin) {
-        document.getElementById("modalAdminPin").classList.remove("hidden");
-        return;
-      }
-      openMemberEditModal();
-    });
-
-    document.getElementById("resetSampleDataBtn").addEventListener("click", () => {
-      if (!session.isAdmin) {
-        document.getElementById("modalAdminPin").classList.remove("hidden");
-        return;
-      }
-      store = {
-        config: { ...DEFAULT_CONFIG },
-        members: [...INITIAL_MEMBERS],
-        chat: []
-      };
-      saveState();
-      showToast("Reset to default 10 members.");
-    });
-
-    // Filter Buttons
-    document.querySelectorAll(".filter-tab-btn").forEach(btn => {
-      btn.addEventListener("click", () => {
-        document.querySelectorAll(".filter-tab-btn").forEach(b => {
-          b.classList.remove("bg-white", "text-indigo-700", "shadow-xs");
-        });
-        btn.classList.add("bg-white", "text-indigo-700", "shadow-xs");
-        activeFilter = btn.getAttribute("data-filter");
-        renderMembersList();
-      });
-    });
-
-    // Bottom Navigation Bar tabs
-    document.querySelectorAll(".nav-tab-btn").forEach(btn => {
-      btn.addEventListener("click", () => {
-        document.querySelectorAll(".nav-tab-btn").forEach(b => {
-          b.classList.remove("text-indigo-600");
-          b.classList.add("text-slate-400");
-        });
-        btn.classList.remove("text-slate-400");
-        btn.classList.add("text-indigo-600");
-
-        const targetId = btn.getAttribute("data-target");
-        document.querySelectorAll(".view-content").forEach(view => {
-          view.classList.add("hidden");
-        });
-        document.getElementById(targetId).classList.remove("hidden");
-
-        if (targetId === "viewWheel") {
-          drawWheel();
-        }
-      });
-    });
-
-    // Initialize application
-    loadState();
-    renderAll();
-  </script>
-</body>
-</html>
+    canvas { border-radius: 50%; box-shadow: 0 4
